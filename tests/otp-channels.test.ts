@@ -48,7 +48,7 @@ describe('WhatsApp OTP', () => {
   it('throws when WhatsApp fails and there is no fallback', async () => {
     process.env.OTP_PROVIDER = 'whatsapp'
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('err', { status: 500 })))
-    await expect(sendOtp('+919876543210', '111222')).rejects.toThrow(/WhatsApp OTP send failed/)
+    await expect(sendOtp('+919876543210', '111222')).rejects.toThrow(/WhatsApp send failed/)
   })
 
   it('refuses the console sender in production', async () => {

@@ -177,3 +177,18 @@ export const searchProvidersCached = unstable_cache(
   ['search-v1'],
   { tags: [TAGS.providers, TAGS.categories, TAGS.localities], revalidate: 10 * 60 },
 )
+
+/** Real counts for the home page. Never shown as a made-up number. */
+export const getSiteStatsCached = unstable_cache(
+  async (): Promise<{ providers: number; categories: number; localities: number }> => {
+    const p = await payload()
+    const [providers, categories, localities] = await Promise.all([
+      p.count({ collection: 'providers', where: { status: { equals: 'published' } } }),
+      p.count({ collection: 'categories', where: { active: { equals: true } } }),
+      p.count({ collection: 'localities', where: { active: { equals: true } } }),
+    ])
+    return { providers: providers.totalDocs, categories: categories.totalDocs, localities: localities.totalDocs }
+  },
+  ['site-stats-v1'],
+  { tags: [TAGS.providers, TAGS.categories, TAGS.localities], revalidate: HOUR },
+)

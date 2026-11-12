@@ -3,11 +3,13 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
+import { preload } from 'react-dom'
 
 import { PwaChrome } from '@/components/client'
 import { MobileNav, SiteFooter, SiteHeader } from '@/components/ui'
 import { enabledProviders } from '@/lib/auth/server'
-import { getSiteSettings } from '@/lib/server'
+import { unreadCount } from '@/lib/account'
+import { getCurrentUser, getSiteSettings } from '@/lib/server'
 import { SESSION_COOKIE } from '@/lib/session'
 import './styles.css'
 
@@ -41,6 +43,7 @@ const TONE: Record<string, string> = {
 }
 
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
+  preload('/fonts/inter-latin-var.woff2', { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' })
   const locale = await getLocale()
   const t = await getTranslations('app')
   // Static pages (the offline fallback) are prerendered at build time: don't touch the database then.
@@ -48,7 +51,10 @@ export default async function FrontendLayout({ children }: { children: React.Rea
   const settings = isBuild ? null : await getSiteSettings().catch(() => null)
   const banner = settings?.alertBanner
   const store = isBuild ? null : await cookies()
-  const signedIn = Boolean(store?.get(SESSION_COOKIE) || store?.get('payload-token'))
+  const hasAuthCookie = Boolean(store?.get(SESSION_COOKIE) || store?.get('payload-token'))
+  const user = hasAuthCookie ? await getCurrentUser().catch(() => null) : null
+  const signedIn = Boolean(user)
+  const unread = user ? await unreadCount(user).catch(() => 0) : 0
 
   return (
     <html lang={locale}>
@@ -66,7 +72,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
               </Link>
             </div>
           )}
-          <SiteHeader locale={locale} signedIn={signedIn} providers={enabledProviders()} />
+          <SiteHeader locale={locale} signedIn={signedIn} providers={enabledProviders()} unread={unread} />
           <main id="main" className="flex-1">
             {children}
           </main>

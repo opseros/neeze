@@ -54,7 +54,9 @@ Remove the `*.vercel.app` line if you don't need uploads on preview deployments.
 | `MICROSOFT_CLIENT_SECRET` | see "Sign-in" below |
 | `RESEND_API_KEY` | for email codes, see "Sign-in" below |
 | `EMAIL_FROM` | `neeze@opseros.com` |
-| `OTP_PROVIDER` | `whatsapp` (mobile number check, see below) |
+| `PHONE_VERIFICATION` | `off` for now (see "Mobile number check") |
+| `OTP_PROVIDER` | leave unset for now; `whatsapp` later, for the mobile check |
+| `WHATSAPP_ALERT_TEMPLATE` | `neeze_new_request` (optional provider alerts, see below) |
 | `R2_BUCKET` | `neeze-media` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
 | `R2_ACCESS_KEY_ID` | from the R2 token |
@@ -110,11 +112,15 @@ Resend has a free tier; check its current monthly limit against your expected si
 
 ### Mobile number check
 
-When `OTP_PROVIDER` is set (WhatsApp, below), a new mobile number is confirmed with a code before it's saved. If someone typed a number they don't own, the real owner can still claim it by verifying it. Without a provider, numbers are saved unconfirmed but still unique. Set `PHONE_VERIFICATION=off` to skip the code even when WhatsApp is configured.
+**Off by default.** Accounts are already proven through Google, Microsoft or an email code. The mobile number is required and unique (one number per account), but it isn't confirmed by a code.
+
+If a number is already on another account, the second person sees "This number is already linked to another account". If that's a genuine mix-up, an admin can clear the number from the wrong account in Admin → Users.
+
+To confirm numbers by WhatsApp/SMS code later, set up `OTP_PROVIDER` (below) and add `PHONE_VERIFICATION=on`.
 
 ## Mobile verification codes: WhatsApp
 
-Used to confirm the mobile number on each account. WhatsApp needs no TRAI DLT registration: you need a verified Meta business and one approved template.
+Only needed if you turn on the mobile number check (`PHONE_VERIFICATION=on`). WhatsApp needs no TRAI DLT registration: you need a verified Meta business and one approved template.
 
 1. **Meta Business verification**: business.facebook.com → Security Centre → Start verification. Have the company PAN/GST and a website on the same name ready. Register under the Indian entity so India's domestic authentication rate applies.
 2. **WhatsApp Business Account + phone number**: developers.facebook.com → Create app (Business) → add *WhatsApp*. Add a phone number that is **not** already on the WhatsApp app (a new SIM or landline works), and verify it.
@@ -131,6 +137,14 @@ Used to confirm the mobile number on each account. WhatsApp needs no TRAI DLT re
 | `WHATSAPP_OTP_TEMPLATE_LANG` | `en` |
 
 6. Add a payment method in WhatsApp Manager. Until business verification is done, Meta caps new accounts at a low daily message limit.
+
+**New-request alerts to providers (optional, recommended).** Create a second template in WhatsApp Manager:
+
+- Category **Utility**, name `neeze_new_request`, language English.
+- Body: `New Neeze request {{1}} from {{2}}: {{3}}`.
+- Button: *Visit website*, dynamic URL `https://neeze.opseros.com/provider/requests/{{1}}`.
+
+Then set `WHATSAPP_ALERT_TEMPLATE=neeze_new_request`. Each new request then also goes to the listing's WhatsApp number (or its phone if that's a mobile). Owners always get an in-app notification and an email, WhatsApp or not.
 
 **Later, add SMS as a backup** for people without WhatsApp: finish DLT, set the MSG91 variables and `OTP_FALLBACK=msg91`. If WhatsApp can't deliver, the same code goes by SMS, and the screen says which.
 
@@ -155,6 +169,7 @@ The next deploy applies it automatically.
 
 ## Checks after the first deploy
 
+- [ ] Admin → Providers → a listing → *Owners*: add your own account, send yourself a request, check the alert email and /provider
 - [ ] Sign in with Google, then Microsoft, then an email code using the same address: all three land in one account
 - [ ] `/manifest.webmanifest` loads, and Chrome on Android offers "Add to Home screen"
 - [ ] Upload a photo in Admin → Media; its URL starts with `https://neeze-media.opseros.com/media/`

@@ -37,23 +37,29 @@ body="{\"idempotencyKey\":\"$KEY\",\"kind\":\"service\",\"provider\":$pid,\"loca
 check "request refused until mobile is added" "$(code_ -b $T/neeze-ckA -X POST $B/api/requests/submit -H "$J" -d "$body")" "428"
 check "name required with mobile" "$(code_ -b $T/neeze-ckA -X POST $B/auth/phone -H "$J" -d "{\"phone\":\"$PA\"}")" "400"
 p=$(curl -gs -b $T/neeze-ckA -X POST $B/auth/phone -H "$J" -d "{\"name\":\"Asha\",\"phone\":\"$PA\"}")
-pc=$(echo $p | jq_ "d.get('devCode','')")
-check "mobile verification code sent" "$(echo $p | jq_ "d.get('needsCode')")" "True"
-[ "$pc" == "000000" ] || check "wrong mobile code rejected" "$(code_ -b $T/neeze-ckA -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PA\",\"code\":\"000000\"}")" "400"
-check "mobile verified" "$(curl -gs -b $T/neeze-ckA -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PA\",\"code\":\"$pc\"}" | jq_ "d['user']['phone']")" "+91$PA"
+if [ "$(echo $p | jq_ "d.get('needsCode')")" == "True" ]; then
+  # PHONE_VERIFICATION=on: confirm by code
+  pc=$(echo $p | jq_ "d.get('devCode','')")
+  [ "$pc" == "000000" ] || check "wrong mobile code rejected" "$(code_ -b $T/neeze-ckA -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PA\",\"code\":\"000000\"}")" "400"
+  check "mobile verified" "$(curl -gs -b $T/neeze-ckA -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PA\",\"code\":\"$pc\"}" | jq_ "d['user']['phone']")" "+91$PA"
+  PHONE_CHECK=on
+else
+  check "mobile saved straight away (check off)" "$(echo $p | jq_ "d['user']['phone']")" "+91$PA"
+  PHONE_CHECK=off
+fi
 
 # --- no duplicates ---
 check "same email signs in to the same account" "$(sleep 61; login $EA $T/neeze-ckA2 | jq_ "d['user']['id']")" "$uidA"
-login $EB $T/neeze-ckB > /dev/null
-check "another account cannot take a verified mobile" "$(code_ -b $T/neeze-ckB -X POST $B/auth/phone -H "$J" -d "{\"name\":\"Bimal\",\"phone\":\"$PA\"}")" "409"
+uidB=$(login $EB $T/neeze-ckB | jq_ "d['user']['id']")
+check "another account cannot take the same mobile" "$(code_ -b $T/neeze-ckB -X POST $B/auth/phone -H "$J" -d "{\"name\":\"Bimal\",\"phone\":\"$PA\"}")" "409"
 pb=$(curl -gs -b $T/neeze-ckB -X POST $B/auth/phone -H "$J" -d "{\"name\":\"Bimal\",\"phone\":\"$PB\"}" | jq_ "d.get('devCode','')")
-curl -gs -o /dev/null -b $T/neeze-ckB -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PB\",\"code\":\"$pb\"}"
+[ -n "$pb" ] && curl -gs -o /dev/null -b $T/neeze-ckB -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PB\",\"code\":\"$pb\"}"
 
 # --- privilege escalation ---
 curl -gs -b $T/neeze-ckA -o /dev/null -X PATCH $B/api/users/$uidA -H "$J" -d '{"roles":["super-admin"]}'
 check "customer cannot make self super-admin" "$(curl -gs -b $T/neeze-ckA $B/api/users/$uidA | jq_ "d['roles']")" "['customer']"
 curl -gs -b $T/neeze-ckA -o /dev/null -X PATCH $B/api/users/$uidA -H "$J" -d '{"phone":"+919999999999","phoneVerified":true}'
-check "customer cannot change verified mobile via API" "$(curl -gs -b $T/neeze-ckA $B/api/users/$uidA | jq_ "d['phone']")" "+91$PA"
+check "customer cannot change their mobile through the open API" "$(curl -gs -b $T/neeze-ckA $B/api/users/$uidA | jq_ "d['phone']")" "+91$PA"
 check "anonymous cannot create users" "$(code_ -X POST $B/api/users -H "$J" -d '{"email":"x@y.z","password":"abcdefgh1","roles":["admin"]}')" "403"
 check "customer B sees only own user record" "$(curl -gs -b $T/neeze-ckB "$B/api/users?limit=50" | jq_ "d.get('totalDocs')")" "1"
 check "one-time code hashes not readable" "$(code_ "$B/api/otp-challenges")" "403"
@@ -82,6 +88,35 @@ check "self-onboarded listing forced to pending + unverified" "$(curl -gs -b $T/
 # --- search ---
 n=$(curl -gs "$B/explore?q=taraapur%20electrician" | grep -c "Demo Electrician\|ডেমো ইলেকট্রিশিয়ান"); check "search: misspelt locality + category finds provider" "$([ $n -gt 0 ] && echo yes)" "yes"
 n=$(curl -gs -b "NEXT_LOCALE=bn" "$B/explore?q=%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%BE%E0%A6%AE%E0%A7%8D%E0%A6%AC%E0%A6%BE%E0%A6%B0" | grep -c "Demo Plumbing\|ডেমো প্লাম্বিং"); check "search: Bengali query finds plumber" "$([ $n -gt 0 ] && echo yes)" "yes"
+
+
+# --- provider side: admin links B as owner of the demo electrician ---
+ADMIN_EMAIL=${SMOKE_ADMIN_EMAIL:-admin@neeze.local}; ADMIN_PASSWORD=${SMOKE_ADMIN_PASSWORD:-Neeze-dev-2026!}
+TOK=$(curl -gs -X POST $B/api/users/login -H "$J" -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" | jq_ "d.get('token','')")
+check "admin can sign in to /admin API" "$([ ${#TOK} -gt 20 ] && echo yes)" "yes"
+curl -gs -o /dev/null -X PATCH $B/api/providers/$pid -H "$J" -H "Authorization: JWT $TOK" -d "{\"owners\":[$uidB]}"
+KEY2=testkey2-$(date +%s%N)
+body2="{\"idempotencyKey\":\"$KEY2\",\"kind\":\"service\",\"provider\":$pid,\"locality\":$lid,\"description\":\"Switchboard sparking\",\"contactName\":\"Asha\",\"contactPhone\":\"$PA\",\"urgency\":\"urgent\"}"
+rid2=$(curl -gs -b $T/neeze-ckA -X POST $B/api/requests/submit -H "$J" -d "$body2" | jq_ "d.get('id')")
+check "owner gets an in-app alert for the new request" "$(curl -gs -b $T/neeze-ckB "$B/api/notifications?where[request][equals]=$rid2" | jq_ "d['docs'][0]['kind']")" "new-request"
+check "owner can open the request and see the customer's number" "$(curl -gs -b $T/neeze-ckB "$B/api/requests/$rid2?depth=0" | jq_ "d['contactPhone']")" "+91$PA"
+check "owner cannot jump straight to completed" "$(code_ -b $T/neeze-ckB -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"status":"completed"}')" "403"
+check "owner marks contacted" "$(code_ -b $T/neeze-ckB -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"status":"contacted"}')" "200"
+check "customer is notified of the update" "$(curl -gs -b $T/neeze-ckA "$B/api/notifications?where[request][equals]=$rid2" | jq_ "d['docs'][0]['data']['status']")" "contacted"
+check "owner cannot edit the customer's description" "$(curl -gs -b $T/neeze-ckB -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"description":"changed"}' | jq_ "d['doc']['description']")" "Switchboard sparking"
+check "owner sends a quote" "$(curl -gs -b $T/neeze-ckB -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"status":"quoted","quoteNote":"Rs 450 incl. parts, today 5pm"}' | jq_ "d['doc']['quoteNote']")" "Rs 450 incl. parts, today 5pm"
+check "customer accepts the quote" "$(code_ -b $T/neeze-ckA -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"status":"accepted"}')" "200"
+check "owner is notified the customer accepted" "$(curl -gs -b $T/neeze-ckB "$B/api/notifications?where[request][equals]=$rid2&sort=-createdAt" | jq_ "d['docs'][0]['data']['status']")" "accepted"
+curl -gs -o /dev/null -b $T/neeze-ckB -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"status":"in-progress"}'
+check "owner completes the job" "$(curl -gs -b $T/neeze-ckB -X PATCH $B/api/requests/$rid2 -H "$J" -d '{"status":"completed"}' | jq_ "(d['doc']['status'], len(d['doc']['history']))")" "('completed', 6)"
+nB=$(curl -gs -b $T/neeze-ckB "$B/api/notifications?limit=1" | jq_ "d['docs'][0]['id']")
+check "customer cannot see the owner's notifications" "$(curl -gs -b $T/neeze-ckA "$B/api/notifications?limit=100&depth=0" | jq_ "all(n['user']==$uidA for n in d['docs'])")" "True"
+s=$(code_ -b $T/neeze-ckA -X PATCH $B/api/notifications/$nB -H "$J" -d '{"read":true}'); check "customer cannot mark the owner's notification read" "$([ $s == 403 -o $s == 404 ] && echo blocked)" "blocked"
+check "owner can mark own notification read (and can't reassign it)" "$(curl -gs -b $T/neeze-ckB -X PATCH "$B/api/notifications/$nB?depth=0" -H "$J" -d '{"read":true,"user":'$uidA'}' | jq_ "(d['doc']['read'], d['doc']['user']==$uidB)")" "(True, True)"
+check "dashboard page loads for the owner" "$(code_ -b $T/neeze-ckB $B/provider)" "200"
+check "request page loads for the owner" "$(code_ -b $T/neeze-ckB $B/provider/requests/$rid2)" "200"
+check "request page is hidden from non-owners" "$(curl -gs -b $T/neeze-ckA $B/provider/requests/$rid2 | grep -c 'Switchboard sparking')" "0"
+curl -gs -o /dev/null -X PATCH $B/api/providers/$pid -H "$J" -H "Authorization: JWT $TOK" -d '{"owners":[]}'
 
 # --- sign-out ---
 curl -gs -b $T/neeze-ckA -c $T/neeze-ckA -o /dev/null -X POST $B/auth/logout

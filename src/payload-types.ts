@@ -74,6 +74,7 @@ export interface Config {
     news: News;
     media: Media;
     users: User;
+    notifications: Notification;
     'audit-logs': AuditLog;
     'otp-challenges': OtpChallenge;
     'payload-kv': PayloadKv;
@@ -90,6 +91,7 @@ export interface Config {
     news: NewsSelect<false> | NewsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'otp-challenges': OtpChallengesSelect<false> | OtpChallengesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -452,6 +454,29 @@ export interface News {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: number;
+  user: number | User;
+  kind: 'new-request' | 'request-update';
+  request?: (number | null) | Request;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  link?: string | null;
+  read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "audit-logs".
  */
 export interface AuditLog {
@@ -539,6 +564,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: number | Notification;
       } | null)
     | ({
         relationTo: 'audit-logs';
@@ -817,6 +846,20 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  user?: T;
+  kind?: T;
+  request?: T;
+  data?: T;
+  link?: T;
+  read?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

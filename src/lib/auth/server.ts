@@ -191,10 +191,11 @@ export async function checkCode(payload: Payload, target: string, purpose: CodeP
   return { ok: true }
 }
 
-/** Whether a new mobile number is confirmed by a WhatsApp/SMS code before it's saved. */
-export const phoneVerificationOn = () => {
-  if (process.env.PHONE_VERIFICATION === 'off') return false
-  return Boolean(process.env.OTP_PROVIDER)
-}
+/**
+ * Whether a new mobile number is confirmed by a WhatsApp/SMS code before it's saved.
+ * Off by default: accounts are already verified through Google, Microsoft or an email code.
+ * Turn on with PHONE_VERIFICATION=on once a WhatsApp/SMS channel (OTP_PROVIDER) is ready.
+ */
+export const phoneVerificationOn = () => process.env.PHONE_VERIFICATION === 'on' && Boolean(process.env.OTP_PROVIDER)
 
 export const publicUser = (u: User) => ({ id: u.id, name: u.name ?? null, email: u.email ?? null, phone: u.phone ?? null, needsPhone: !u.phone })

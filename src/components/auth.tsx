@@ -357,7 +357,7 @@ export function SignOutButton() {
   return (
     <button
       type="button"
-      className="btn-secondary"
+      className="btn-secondary shrink-0 whitespace-nowrap px-3 text-sm"
       onClick={async () => {
         await fetch('/auth/logout', { method: 'POST' })
         router.replace('/')

@@ -1,4 +1,4 @@
-import { ArrowLeft, BadgeCheck, ChevronRight, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Bell, ChevronRight, MapPin, Phone } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
@@ -23,7 +23,7 @@ export function Logo({ className = '' }: { className?: string }) {
 
 /* ---------- Site chrome ---------- */
 
-export async function SiteHeader({ locale, signedIn, providers }: { locale: string; signedIn: boolean; providers: Providers }) {
+export async function SiteHeader({ locale, signedIn, providers, unread = 0 }: { locale: string; signedIn: boolean; providers: Providers; unread?: number }) {
   const t = await getTranslations()
   const links = [
     { href: '/explore?vertical=services', label: t('nav.services'), match: 'services' },
@@ -46,9 +46,15 @@ export async function SiteHeader({ locale, signedIn, providers }: { locale: stri
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <LanguageToggle current={locale} label={t('nav.language')} />
           {signedIn ? (
-            <Link href="/me" className="hidden h-10 items-center rounded-lg border border-line px-3 text-sm font-semibold text-ink hover:bg-surface md:inline-flex">
-              {t('nav.account')}
-            </Link>
+            <>
+              <Link href="/notifications" aria-label={t('nav2.notifications')} className="relative grid size-10 place-items-center rounded-lg border border-line text-ink hover:bg-surface">
+                <Bell className="size-5" aria-hidden />
+                {unread > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white">{unread > 9 ? '9+' : unread}</span>}
+              </Link>
+              <Link href="/me" className="hidden h-10 items-center rounded-lg border border-line px-3 text-sm font-semibold text-ink hover:bg-surface md:inline-flex">
+                {t('nav.account')}
+              </Link>
+            </>
           ) : (
             <SignInButton label={t('nav.signIn')} providers={providers} className="hidden h-10 items-center rounded-lg bg-brand-navy px-4 text-sm font-semibold text-white hover:bg-brand-navy/90 md:inline-flex" />
           )}
@@ -78,7 +84,10 @@ export async function SiteFooter({ supportPhone }: { supportPhone?: string | nul
           <p className="font-semibold text-ink">{t('footer.help')}</p>
           <Link href="/emergency" className="text-muted hover:text-ink">{t('home.emergency')}</Link>
           <Link href="/me" className="text-muted hover:text-ink">{t('me.requests')}</Link>
-          <p className="mt-2 font-semibold text-ink">{t('footer.listBusiness')}</p>
+          <Link href="/provider" className="text-muted hover:text-ink">{t('nav2.dashboard')}</Link>
+          <p className="mt-2 font-semibold text-ink">
+            <Link href="/provider/listing/new" className="hover:text-brand-navy">{t('footer.listBusiness')}</Link>
+          </p>
           <p className="text-muted">
             {t('footer.listBusinessBody')}
             {supportPhone && (
@@ -165,9 +174,9 @@ export async function ProviderCard({ p, locale }: { p: Provider; locale: string 
   const primary = cats[0]
   const displayName = locale === 'bn' && p.nameBn ? p.nameBn : p.name
   return (
-    <li className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:border-brand-blue/40 hover:shadow-sm">
+    <li className="lift group flex flex-col rounded-2xl border border-line bg-white p-4 shadow-card">
       <Link href={`/p/${p.id}`} className="flex flex-1 gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-blue/10 text-brand-navy">
+        <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-blue/15 to-brand-teal/10 text-brand-navy">
           <CategoryIcon slug={primary?.slug} vertical={primary?.vertical} className="size-5" />
         </span>
         <span className="min-w-0 flex-1">

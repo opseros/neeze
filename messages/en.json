@@ -255,5 +255,133 @@
     "termsTitle": "Terms of Service",
     "privacyTitle": "Privacy Policy",
     "pending": "This page is being finalised. For questions in the meantime, contact Neeze support."
+  },
+  "dash": {
+    "title": "Provider dashboard",
+    "subtitle": "Requests from customers for your listings.",
+    "tabs": {
+      "new": "New",
+      "active": "In progress",
+      "done": "Finished"
+    },
+    "emptyNew": "No new requests right now. We'll notify you by email and in the app when one arrives.",
+    "emptyActive": "Nothing in progress.",
+    "emptyDone": "No finished requests yet.",
+    "yourListings": "Your listings",
+    "addListing": "Add a listing",
+    "edit": "Edit",
+    "listingStatus": {
+      "draft": "Draft",
+      "pending-review": "Waiting for review",
+      "published": "Live",
+      "suspended": "Suspended"
+    },
+    "noListingTitle": "List your business on Neeze",
+    "noListingBody": "Free during launch. Add your services and areas; our team checks the details, then customers in Silchar can find and call you.",
+    "urgent": "Urgent",
+    "received": "Received {when}",
+    "preferred": "Preferred: {date}",
+    "customer": "Customer",
+    "callCustomer": "Call",
+    "whatsappCustomer": "WhatsApp",
+    "address": "Address",
+    "area": "Area",
+    "need": "What they need",
+    "actionsTitle": "Update the customer",
+    "act": {
+      "contacted": "I've called them",
+      "quoted": "Send a quote",
+      "accepted": "Agreed with customer",
+      "in-progress": "Work started",
+      "completed": "Mark completed",
+      "rejected": "Decline"
+    },
+    "quotePlaceholder": "e.g. ₹450 for fan repair, includes parts. Can visit today 5 pm.",
+    "reasonPlaceholder": "Reason, e.g. not available on that date",
+    "send": "Send",
+    "cancel": "Cancel",
+    "saved": "Updated. The customer has been notified.",
+    "timeline": "Progress",
+    "backToInbox": "All requests",
+    "notAllowed": "This request is closed.",
+    "status": {
+      "submitted": "New",
+      "assigned": "New",
+      "contacted": "Contacted",
+      "quoted": "Quote sent",
+      "accepted": "Agreed",
+      "in-progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled by customer",
+      "rejected": "Declined",
+      "expired": "Expired"
+    }
+  },
+  "listing": {
+    "newTitle": "List your business",
+    "editTitle": "Edit listing",
+    "intro": "Customers see this on Neeze. New listings go live after our team checks the details (usually within a day).",
+    "name": "Business or professional name",
+    "nameBn": "Name in Bengali (optional)",
+    "type": "Type",
+    "category": "Main category",
+    "summary": "Short description",
+    "summaryHint": "What you do, years of experience, brands you handle.",
+    "baseArea": "Where you are based",
+    "serviceAreas": "Areas you travel to",
+    "phone": "Phone for customers",
+    "whatsapp": "WhatsApp number (optional)",
+    "address": "Address (optional)",
+    "acceptsRequests": "Accept requests through Neeze",
+    "submitNew": "Submit for review",
+    "submitEdit": "Save changes",
+    "submitted": "Thanks! Your listing is waiting for review.",
+    "savedEdit": "Saved.",
+    "types": {
+      "service-professional": "Service professional",
+      "business": "Shop / business",
+      "doctor": "Doctor",
+      "clinic": "Clinic",
+      "hospital": "Hospital",
+      "diagnostic": "Diagnostic centre"
+    }
+  },
+  "notif": {
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "markAll": "Mark all as read",
+    "newRequest": "New request {code} from {name}",
+    "newRequestUrgent": "Urgent request {code} from {name}",
+    "update": {
+      "contacted": "{provider} contacted you about {code}",
+      "quoted": "{provider} sent a quote for {code}",
+      "accepted": "{code} is agreed",
+      "in-progress": "Work started on {code}",
+      "completed": "{code} is completed",
+      "rejected": "{provider} declined {code}",
+      "cancelled": "{code} was cancelled",
+      "expired": "{code} expired",
+      "submitted": "{code} updated",
+      "assigned": "{code} updated"
+    }
+  },
+  "home2": {
+    "statsProviders": "{count, plural, one {# provider} other {# providers}}",
+    "statsCategories": "{count} categories",
+    "statsAreas": "{count} areas of Silchar",
+    "howTitle": "How Neeze works",
+    "how1Title": "Search",
+    "how1Body": "Find an electrician, plumber, doctor or shop near your area.",
+    "how2Title": "Send a request",
+    "how2Body": "Describe the problem once. Your number goes only to the provider you pick.",
+    "how3Title": "Get a call back",
+    "how3Body": "The provider calls you, agrees a price and time, and you track it here.",
+    "bizTitle": "Do you run a business in Silchar?",
+    "bizBody": "Get requests from nearby customers. Free during launch.",
+    "bizCta": "List your business"
+  },
+  "nav2": {
+    "dashboard": "Provider dashboard",
+    "notifications": "Notifications"
   }
 }

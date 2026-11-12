@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 
 @font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
   font-family: 'Noto Sans Bengali';
   font-style: normal;
   font-weight: 400;
@@ -25,12 +33,14 @@
   --color-ink: #14212e;
   --color-muted: #5a6b7b;
   --color-line: #d6dee6;
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Bengali', sans-serif;
+  --font-sans: 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-lift: 0 10px 24px -8px rgb(23 59 98 / 0.18);
 }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
-  body { @apply bg-surface text-ink antialiased; }
+  body { @apply bg-surface text-ink antialiased; font-feature-settings: 'cv11', 'ss01'; }
   h1, h2, h3 { text-wrap: balance; }
   /* Bengali conjuncts need a little more line height to stay readable. */
   :lang(bn) body { line-height: 1.65; }
@@ -39,11 +49,15 @@
 }
 
 @layer components {
-  .card { @apply rounded-2xl border border-line bg-white p-4; }
-  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-navy px-4 py-2.5 font-semibold text-white disabled:opacity-60; }
-  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 font-semibold text-ink; }
+  .card { @apply rounded-2xl border border-line bg-white p-4 shadow-card; }
+  .lift { @apply transition duration-200 hover:-translate-y-0.5 hover:border-brand-blue/30 hover:shadow-lift; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.12em] text-brand-teal; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-navy px-4 py-2.5 font-semibold text-white shadow-sm transition hover:bg-[#12304f] active:scale-[0.99] disabled:opacity-60; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 font-semibold text-ink transition hover:border-brand-blue/40 hover:bg-surface active:scale-[0.99]; }
+  .skeleton { @apply animate-pulse rounded-lg bg-line/60; }
+  .btn-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-red-700 px-4 py-2.5 font-semibold text-white disabled:opacity-60; }
   .btn-whatsapp { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#1f8f4e] px-4 py-2.5 font-semibold text-white; }
-  .input { @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base text-ink; }
+  .input { @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base text-ink transition placeholder:text-muted/70 focus:border-brand-blue focus:outline-none focus:ring-4 focus:ring-brand-blue/15; }
   .field { @apply grid gap-1.5 text-sm font-medium text-ink; }
   .article-body { @apply grid gap-4 text-[1.0625rem] leading-relaxed text-ink; }
   .article-body h2 { @apply mt-4 text-xl font-bold; }

@@ -3,6 +3,10 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { LanguagePicker, OutboxList } from '@/components/client'
 import { AuthPanel, SignOutButton } from '@/components/auth'
 import { CancelRequestButton } from '@/components/forms'
+import { StatusTimeline } from '@/components/timeline'
+import { getOwnedListings } from '@/lib/account'
+import Link from 'next/link'
+import { Store } from 'lucide-react'
 import { Container, PageTitle } from '@/components/ui'
 import type { Provider } from '@/payload-types'
 import { redirect } from 'next/navigation'
@@ -54,6 +58,7 @@ export default async function MePage() {
     user,
     overrideAccess: false,
   })
+  const owned = await getOwnedListings(user)
   const fmt = (d: string) => new Date(d).toLocaleString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium', timeStyle: 'short' })
 
   return (
@@ -73,6 +78,12 @@ export default async function MePage() {
           <h2 className="font-semibold">{t('me.language')}</h2>
           <LanguagePicker current={locale} compact />
         </section>
+        <Link href={owned.length ? '/provider' : '/provider/listing/new'} className="card flex items-center gap-3 transition hover:border-brand-blue/40">
+          <span className="grid size-10 place-items-center rounded-xl bg-brand-teal/10 text-brand-teal">
+            <Store className="size-5" aria-hidden />
+          </span>
+          <span className="font-semibold">{owned.length ? t('nav2.dashboard') : t('home2.bizCta')}</span>
+        </Link>
         </aside>
 
         <section className="grid content-start gap-3">
@@ -95,6 +106,12 @@ export default async function MePage() {
                       {r.code} · {fmt(r.createdAt)}
                     </p>
                     {r.quoteNote && <p className="rounded-lg bg-surface p-2 text-sm">{r.quoteNote}</p>}
+                    <details className="group mt-1">
+                      <summary className="cursor-pointer list-none text-sm font-medium text-brand-blue">{t('dash.timeline')} ▾</summary>
+                      <div className="mt-3">
+                        <StatusTimeline status={r.status ?? 'submitted'} history={r.history} compact />
+                      </div>
+                    </details>
                     {CANCELLABLE.has(r.status ?? '') && (
                       <div className="text-right">
                         <CancelRequestButton id={r.id} />

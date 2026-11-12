@@ -33,3 +33,36 @@ export const AuditLogs: CollectionConfig = {
     { name: 'detail', type: 'json' },
   ],
 }
+
+/**
+ * In-app notifications. Text is rendered from `kind` + `data` in the reader's language,
+ * so one record works in Bengali and English.
+ */
+export const Notifications: CollectionConfig = {
+  slug: 'notifications',
+  admin: { group: 'Operations', defaultColumns: ['user', 'kind', 'read', 'createdAt'] },
+  access: {
+    read: ({ req }) => (req.user ? { user: { equals: req.user.id } } : false),
+    update: ({ req }) => (req.user ? { user: { equals: req.user.id } } : false),
+    create: nobody,
+    delete: adminsOnly,
+  },
+  defaultSort: '-createdAt',
+  fields: [
+    { name: 'user', type: 'relationship', relationTo: 'users', required: true, index: true },
+    { name: 'kind', type: 'select', required: true, options: ['new-request', 'request-update'] },
+    { name: 'request', type: 'relationship', relationTo: 'requests' },
+    { name: 'data', type: 'json' },
+    { name: 'link', type: 'text' },
+    { name: 'read', type: 'checkbox', defaultValue: false, index: true },
+  ],
+  hooks: {
+    // Owners may only flip `read`; everything else stays as written by the server.
+    beforeChange: [
+      ({ data, originalDoc, operation, req }) => {
+        if (operation !== 'update' || !req.user || (req.user.roles as string[] | undefined)?.includes('super-admin')) return data
+        return { ...originalDoc, read: Boolean(data.read) }
+      },
+    ],
+  },
+}

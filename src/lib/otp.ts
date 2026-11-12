@@ -1,3 +1,4 @@
+import { sendWhatsappTemplate } from './whatsapp'
 import { createHmac, randomInt, timingSafeEqual } from 'crypto'
 
 export const OTP_TTL_MS = 5 * 60 * 1000
@@ -33,34 +34,10 @@ const consoleSender: OtpSender = async (phone, code) => {
  * a WhatsApp Business phone number, and the template approved in WhatsApp Manager.
  */
 export const whatsappSender: OtpSender = async (phone, code) => {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
   const template = process.env.WHATSAPP_OTP_TEMPLATE
-  if (!token || !phoneNumberId || !template) {
-    throw new Error('WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_OTP_TEMPLATE must be set')
-  }
-  const version = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0'
-  const res = await fetch(`https://graph.facebook.com/${version}/${phoneNumberId}/messages`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: phone.replace('+', ''),
-      type: 'template',
-      template: {
-        name: template,
-        language: { code: process.env.WHATSAPP_OTP_TEMPLATE_LANG ?? 'en' },
-        components: [
-          { type: 'body', parameters: [{ type: 'text', text: code }] },
-          { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: code }] },
-        ],
-      },
-    }),
-  })
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '')
-    throw new Error(`WhatsApp OTP send failed: ${res.status} ${detail.slice(0, 300)}`)
-  }
+  if (!template) throw new Error('WHATSAPP_OTP_TEMPLATE must be set')
+  // Authentication templates take the code in the body and again for the copy-code button.
+  await sendWhatsappTemplate({ to: phone, template, lang: process.env.WHATSAPP_OTP_TEMPLATE_LANG ?? 'en', body: [code], buttonParam: code })
 }
 
 /**

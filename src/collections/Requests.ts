@@ -4,6 +4,7 @@ import { APIError } from 'payload'
 
 import { hasRole, isAdmin, isStaff, superAdminsOnly } from '../access/roles'
 import { audit } from '../hooks/audit'
+import { notifyNewRequest, notifyStatusChange } from '../lib/notify'
 import { REQUEST_STATUSES, type Actor, type RequestStatus, canTransition, needsReason } from '../lib/requestStatus'
 import { normalizeIndianMobile } from '../lib/text'
 
@@ -171,8 +172,15 @@ export const Requests: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, previousDoc, req, operation }) => {
-        if (operation === 'update' && isOps(req.user) && previousDoc?.status !== doc.status) {
-          await audit(req, 'request.staff-status-change', 'requests', doc.id, { from: previousDoc?.status, to: doc.status })
+        if (operation === 'create') {
+          await notifyNewRequest(req, doc)
+          return doc
+        }
+        if (previousDoc?.status !== doc.status) {
+          if (isOps(req.user)) await audit(req, 'request.staff-status-change', 'requests', doc.id, { from: previousDoc?.status, to: doc.status })
+          const last = (doc.history ?? []).at(-1) as { by?: string } | undefined
+          const actor = (last?.by ?? (isOps(req.user) ? 'staff' : 'system')) as 'customer' | 'provider' | 'staff' | 'system'
+          await notifyStatusChange(req, doc, previousDoc?.status ?? '', actor)
         }
         return doc
       },

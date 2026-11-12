@@ -10,7 +10,7 @@ import { Categories, Localities } from './collections/Places'
 import { Media, News, SiteSettings } from './collections/Content'
 import { Providers } from './collections/Providers'
 import { Requests } from './collections/Requests'
-import { AuditLogs, OtpChallenges } from './collections/System'
+import { AuditLogs, Notifications, OtpChallenges } from './collections/System'
 import { Users } from './collections/Users'
 import { r2StoragePlugin } from './lib/storage'
 import { migrations } from './migrations'
@@ -31,7 +31,7 @@ export default buildConfig({
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · Neeze Admin' },
   },
-  collections: [Providers, Requests, Categories, Localities, News, Media, Users, AuditLogs, OtpChallenges],
+  collections: [Providers, Requests, Categories, Localities, News, Media, Users, Notifications, AuditLogs, OtpChallenges],
   globals: [SiteSettings],
   localization: {
     // Assamese ('as') is added in P1; the data model is ready for it.
