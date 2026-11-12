@@ -5,6 +5,7 @@ import { getLocale } from 'next-intl/server'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
+import { DEFAULT_LOCALE, isLocale, type Locale } from '@/i18n/locales'
 import type { Locality, User } from '@/payload-types'
 import { getLocalitiesCached, getSettingsCached } from './cache'
 import { SESSION_COOKIE } from './session'
@@ -13,7 +14,11 @@ export const LOCALITY_COOKIE = 'neeze_locality'
 
 export const getPayloadClient = cache(() => getPayload({ config }))
 
-export const getContentLocale = async () => ((await getLocale()) === 'en' ? 'en' : 'bn') as 'en' | 'bn'
+/** Content language = UI language. Payload falls back per locale (see payload.config.ts) when a field is blank. */
+export const getContentLocale = async (): Promise<Locale> => {
+  const l = await getLocale()
+  return isLocale(l) ? l : DEFAULT_LOCALE
+}
 
 /**
  * The signed-in user, or null. Anonymous visitors have no auth cookie, so we return

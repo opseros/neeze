@@ -10,6 +10,7 @@ import type { Locality, Provider, Request as Req } from '@/payload-types'
 import { relativeTime, requireUser } from '@/lib/account'
 import { canTransition, type RequestStatus } from '@/lib/requestStatus'
 import { getPayloadClient } from '@/lib/server'
+import { fmtDate } from '@/lib/format'
 
 const NEXT: Array<'contacted' | 'quoted' | 'accepted' | 'in-progress' | 'completed' | 'rejected'> = ['contacted', 'quoted', 'accepted', 'in-progress', 'completed', 'rejected']
 
@@ -84,7 +85,7 @@ export default async function ProviderRequest({ params }: { params: Promise<{ id
                   <div>
                     <dt className="text-muted">{tr('window')}</dt>
                     <dd className="font-medium">
-                      {[r.preferredDate && new Date(r.preferredDate).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' }), tr(`windows.${r.preferredWindow ?? 'any'}` as 'windows.any')].filter(Boolean).join(' · ')}
+                      {[r.preferredDate && fmtDate(r.preferredDate, locale, { dateStyle: 'medium' }), tr(`windows.${r.preferredWindow ?? 'any'}` as 'windows.any')].filter(Boolean).join(' · ')}
                     </dd>
                   </div>
                 </div>

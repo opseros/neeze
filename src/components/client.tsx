@@ -7,33 +7,33 @@ import { useEffect, useState, useTransition } from 'react'
 
 import { OUTBOX_EVENT, type OutboxItem, type SavedProvider, flushOutbox, outboxStore, savedStore } from '@/lib/idb'
 import { setLocaleAction } from '@/app/(frontend)/actions'
+import { LANGUAGES } from '@/i18n/locales'
 
 /* ---------- Language ---------- */
 
 export function LanguagePicker({ current, compact = false }: { current?: string; compact?: boolean }) {
   const router = useRouter()
   const [pending, start] = useTransition()
-  const choose = (l: 'bn' | 'en') =>
+  const choose = (l: string) =>
     start(async () => {
       await setLocaleAction(l)
       router.refresh()
     })
-  const opts = [
-    { code: 'bn' as const, label: 'বাংলা' },
-    { code: 'en' as const, label: 'English' },
-  ]
   return (
-    <div className={compact ? 'flex gap-2' : 'grid gap-3'} role="group" aria-label="Language">
-      {opts.map((o) => (
+    <div className={compact ? 'flex flex-wrap gap-2' : 'grid gap-3 sm:grid-cols-2'} role="group" aria-label="Language">
+      {LANGUAGES.map((o) => (
         <button
           key={o.code}
           type="button"
+          lang={o.code}
           disabled={pending}
           onClick={() => choose(o.code)}
           aria-pressed={current === o.code}
-          className={`rounded-xl border px-4 ${compact ? 'py-1.5 text-sm' : 'py-4 text-lg'} font-semibold ${current === o.code ? 'border-brand-blue bg-brand-blue/10 text-brand-navy' : 'border-line bg-white text-ink'}`}
+          title={o.hint}
+          className={`rounded-xl border px-4 text-left ${compact ? 'py-1.5 text-sm' : 'py-3 text-lg'} font-semibold ${current === o.code ? 'border-brand-teal bg-white text-brand-navy ring-2 ring-brand-teal' : 'border-line bg-white text-ink'}`}
         >
           {o.label}
+          {o.code.startsWith('mni') && <span className={`ml-1.5 font-normal text-muted ${compact ? 'text-xs' : 'text-sm'}`}>{o.code === 'mni-Mtei' ? 'Meitei Mayek' : 'বাংলা লিপি'}</span>}
         </button>
       ))}
     </div>

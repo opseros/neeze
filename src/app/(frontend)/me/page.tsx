@@ -15,6 +15,7 @@ import { redirect } from 'next/navigation'
 
 import { enabledProviders } from '@/lib/auth/server'
 import { getCurrentUser, getPayloadClient } from '@/lib/server'
+import { fmtDate } from '@/lib/format'
 
 const CANCELLABLE = new Set(['submitted', 'assigned', 'contacted', 'quoted', 'accepted'])
 const STATUS_STYLE: Record<string, string> = {
@@ -64,7 +65,7 @@ export default async function MePage() {
   // `customer` is a private field, so this lookup runs server-side, limited to the signed-in user.
   const myReviews = await payload.find({ collection: 'reviews', where: { customer: { equals: user.id } }, limit: 100, depth: 0, overrideAccess: true })
   const reviewByRequest = new Map(myReviews.docs.map((rv) => [typeof rv.request === 'object' ? rv.request.id : rv.request, rv]))
-  const fmt = (d: string) => new Date(d).toLocaleString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+  const fmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium', timeStyle: 'short' })
 
   return (
     <>

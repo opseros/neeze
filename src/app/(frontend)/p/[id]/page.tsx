@@ -12,6 +12,8 @@ import { getProviderCached, getProviderReviewsCached } from '@/lib/cache'
 import { MIN_REVIEWS_FOR_AVERAGE } from '@/lib/reviews'
 import { requestKindFor } from '@/lib/kinds'
 import { getContentLocale } from '@/lib/server'
+import { fmtDate } from '@/lib/format'
+import { usesBengaliNames } from '@/i18n/locales'
 
 
 async function load(id: string) {
@@ -39,8 +41,8 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
   const kind = requestKindFor(p.type)
   const wa = p.whatsapp?.replace(/\D/g, '')
   const mapUrl = p.lat != null && p.lng != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : null
-  const dateFmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
-  const displayName = locale === 'bn' && p.nameBn ? p.nameBn : p.name
+  const dateFmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium' })
+  const displayName = usesBengaliNames(locale) && p.nameBn ? p.nameBn : p.name
   const savePayload = { id: p.id, name: p.name, nameBn: p.nameBn, phone: p.phone, whatsapp: p.whatsapp, locality: base?.name, categories: cats.map((c) => c.name) }
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (

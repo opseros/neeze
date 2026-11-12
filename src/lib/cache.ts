@@ -20,7 +20,7 @@ export const TAGS = {
   reviews: 'reviews',
 } as const
 
-type Locale = 'en' | 'bn'
+import type { Locale } from '@/i18n/locales'
 const HOUR = 3600
 const payload = () => getPayload({ config })
 

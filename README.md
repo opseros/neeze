@@ -8,7 +8,7 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 
 | Area | Status |
 | --- | --- |
-| Welcome + language choice (বাংলা / English), saved in a cookie | Done |
+| Languages: বাংলা, English, Manipuri (Meitei) in Meitei Mayek and in Bengali script; picker on first visit, in the header and on My account; saved in a cookie | Done |
 | Home: search, area picker, category tiles, Neeze Services, emergency tile | Done |
 | Search: names, Bengali names, categories, keywords, misspelt localities ("taraapur electrician") | Done (P0 `ILIKE` search; move to `pg_trgm` ranking later) |
 | Provider profile: Call, WhatsApp, verification label, services, areas, hours, map link | Done |
@@ -26,7 +26,7 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 | Verified reviews: only after a completed job, one per job, 60-day window; average shown from 3 reviews; provider reply; report + auto-hide at 3 reports | Done |
 | P1 listings: schools, gyms, hotels, bus operators with an enquiry flow; switch each category on in Admin → Categories | Done |
 | Community | Later |
-| Assamese | P1: add `{ code: 'as' }` to `localization.locales` and `messages/as.json` |
+| Assamese | Later: add it to `src/i18n/locales.ts`, `localization.locales` and `messages/as.json` |
 
 ## Run it locally
 
@@ -48,10 +48,10 @@ In dev, sign-in and mobile codes are printed in the server log and shown on scre
 
 ```bash
 npm test                                  # unit tests: roles, status transitions, search text, phones, session, OTP
-BASE=http://localhost:3000 scripts/smoke-test.sh   # 68 API checks against a running dev server seeded with demo data
+BASE=http://localhost:3000 scripts/smoke-test.sh   # 75 API checks against a running dev server seeded with demo data
 ```
 
-The smoke test covers reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
+The smoke test covers all four languages, reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
 
 ## Deploy
 
@@ -102,9 +102,22 @@ Admin → Reviews. Sort by *Report count*. A review reported by 3 different peop
 
 Admin → Categories → School / Gym / Hotel / Bus operator → tick *Active*. The category appears on the home page and in search once it's active; list providers with the matching *Type*.
 
+## Manipuri (Meitei)
+
+Manipuri is written once, in Bengali script, in `messages/source/mni.json`. A script makes both files the site uses:
+
+```bash
+npx tsx scripts/gen-manipuri.ts   # → messages/mni-Beng.json (Bengali script) + messages/mni-Mtei.json (Meitei Mayek)
+```
+
+Edit only the source file, then run the script; `npm test` fails if the two files are out of date. The converter (`src/lib/meitei.ts`) follows the school-book Bengali ↔ Meitei Mayek letter table. One rule to know when editing: a consonant that **closes a syllable in the middle of a word** needs a mark, or Meitei Mayek gets an open syllable. Use hasanta (`থম্লবা`) or, to keep the Bengali spelling unchanged, an invisible ZWNJ (`শিল\u200Cচর` → ꯁꯤꯜꯆꯔ). Word-final consonants are closed automatically.
+
+Content (category names, news, site settings) has a Manipuri field per script in Admin; use the language switch at the top of each document. Blank fields fall back: Bengali-script Manipuri → Bengali → English; Meitei Mayek → English. Launch categories and locality names are filled in by the migration.
+
 ## Before launch: checklist
 
 - [ ] Native speaker review of `messages/bn.json` and the brand name in Bengali (নিজি)
+- [ ] Native Meitei speaker review of `messages/source/mni.json` (and both scripts on a phone), category names in Admin, and the emergency-number labels in both Manipuri locales
 - [ ] Verify the seeded locality list and Bengali spellings on the ground (`src/seed/index.ts`)
 - [ ] Add verified local hospital and helpline numbers in Admin → Site settings
 - [ ] Google + Microsoft app registrations and Resend domain (DEPLOY.md → Sign-in)

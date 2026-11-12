@@ -10,6 +10,7 @@ import { Container, ProviderCard } from '@/components/ui'
 import { LOCALE_COOKIE } from '@/i18n/request'
 import { getActiveVerticals, getCategoriesCached, getFeaturedProvidersCached, getNewsListCached, getSiteStatsCached } from '@/lib/cache'
 import { getContentLocale, getLocalities, getSelectedLocality, getSiteSettings } from '@/lib/server'
+import { fmtDate } from '@/lib/format'
 
 const VERTICAL_ORDER = ['services', 'health', 'business', 'market', 'education', 'fitness', 'travel'] as const
 
@@ -29,7 +30,7 @@ export default async function Home() {
   const verticals = VERTICAL_ORDER.filter((v) => activeVerticals.includes(v))
   const serviceCats = categories.filter((c) => c.vertical === 'services')
   const emergency = (settings?.emergencyContacts ?? []).slice(0, 3)
-  const dateFmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
+  const dateFmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium' })
 
   return (
     <>

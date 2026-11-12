@@ -25,6 +25,23 @@
   unicode-range: U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA, U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
 }
 
+@font-face {
+  font-family: 'Noto Sans Meetei Mayek';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/noto-sans-meetei-mayek-400.woff2') format('woff2');
+  unicode-range: U+AAE0-AAF6, U+ABC0-ABED, U+ABF0-ABF9;
+}
+@font-face {
+  font-family: 'Noto Sans Meetei Mayek';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/noto-sans-meetei-mayek-600.woff2') format('woff2');
+  unicode-range: U+AAE0-AAF6, U+ABC0-ABED, U+ABF0-ABF9;
+}
+
 @theme {
   --color-brand-navy: #173b62;
   --color-brand-blue: #287dad;
@@ -33,7 +50,7 @@
   --color-ink: #14212e;
   --color-muted: #5a6b7b;
   --color-line: #d6dee6;
-  --font-sans: 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', 'Noto Sans Bengali', 'Noto Sans Meetei Mayek', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
   --shadow-lift: 0 10px 24px -8px rgb(23 59 98 / 0.18);
 }

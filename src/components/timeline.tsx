@@ -1,5 +1,6 @@
 import { Check, X } from 'lucide-react'
 import { getLocale, getTranslations } from 'next-intl/server'
+import { fmtDate } from '@/lib/format'
 
 const FLOW = ['submitted', 'contacted', 'quoted', 'accepted', 'in-progress', 'completed'] as const
 const BAD = new Set(['cancelled', 'rejected', 'expired'])
@@ -11,7 +12,7 @@ export async function StatusTimeline({ status, history, compact = false, audienc
   const t = await getTranslations(audience === 'provider' ? 'dash.status' : 'me.status')
   const locale = await getLocale()
   const when = (s: string) => (history ?? []).filter((h) => h.status === s).at(-1)?.at
-  const fmt = (d?: string | null) => (d ? new Date(d).toLocaleString(locale === 'bn' ? 'bn-IN' : 'en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : null)
+  const fmt = (d?: string | null) => (d ? fmtDate(d, locale, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : null)
   const reached = new Set((history ?? []).map((h) => h.status ?? ''))
   reached.add('submitted')
   const ended = BAD.has(status)

@@ -146,4 +146,12 @@ curl -gs -o /dev/null -X PATCH $B/api/providers/$pid -H "$J" -H "Authorization: 
 curl -gs -b $T/neeze-ckA -c $T/neeze-ckA -o /dev/null -X POST $B/auth/logout
 check "sign-out clears session" "$(curl -gs -b $T/neeze-ckA $B/auth/me | jq_ "d['user']")" "None"
 
+# --- languages ---
+for L in bn en mni-Mtei mni-Beng; do
+  check "home page in $L" "$(curl -gs -b NEXT_LOCALE=$L $B/ | grep -o "<html lang=\"$L\"" | head -1)" "<html lang=\"$L\""
+done
+check "Meitei Mayek text on the page" "$(curl -gs -b NEXT_LOCALE=mni-Mtei $B/ | grep -c 'ꯁꯤꯜꯆꯔ' | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "Meitei Mayek font served" "$(code_ $B/fonts/noto-sans-meetei-mayek-400.woff2)" "200"
+check "unknown language falls back to Bengali" "$(curl -gs -b NEXT_LOCALE=xx $B/ | grep -o '<html lang="bn"' | head -1)" '<html lang="bn"'
+
 echo "== $pass passed, $fail failed"

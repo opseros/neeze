@@ -1,11 +1,12 @@
 'use client'
 
-import { Bookmark, House, Newspaper, Search, User } from 'lucide-react'
+import { Bookmark, ChevronDown, House, Languages, Newspaper, Search, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useTransition } from 'react'
 
 import { setLocaleAction } from '@/app/(frontend)/actions'
+import { LANGUAGES } from '@/i18n/locales'
 
 type NavItem = { href: string; label: string; match: string }
 
@@ -50,31 +51,30 @@ export function HeaderNav({ links }: { links: NavItem[] }) {
 export function LanguageToggle({ current, label }: { current: string; label: string }) {
   const router = useRouter()
   const [pending, start] = useTransition()
-  const opts = [
-    { code: 'bn' as const, label: 'বাংলা' },
-    { code: 'en' as const, label: 'EN' },
-  ]
   return (
-    <div role="group" aria-label={label} className={`flex h-10 items-center rounded-lg border border-line p-0.5 text-sm ${pending ? 'opacity-60' : ''}`}>
-      {opts.map((o) => (
-        <button
-          key={o.code}
-          type="button"
-          lang={o.code}
-          disabled={pending}
-          aria-pressed={current === o.code}
-          onClick={() =>
-            start(async () => {
-              await setLocaleAction(o.code)
-              router.refresh()
-            })
-          }
-          className={`h-full rounded-md px-2.5 font-semibold ${current === o.code ? 'bg-brand-navy text-white' : 'text-muted hover:text-ink'}`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
+    <label className={`relative flex h-10 w-[5.75rem] shrink-0 items-center rounded-lg border border-line text-sm hover:border-brand-blue/40 sm:w-28 ${pending ? 'opacity-60' : ''}`}>
+      <Languages className="pointer-events-none absolute left-2.5 size-4 text-muted" aria-hidden />
+      <span className="sr-only">{label}</span>
+      <select
+        value={current}
+        disabled={pending}
+        onChange={(e) => {
+          const code = e.target.value
+          start(async () => {
+            await setLocaleAction(code)
+            router.refresh()
+          })
+        }}
+        className="h-full w-full min-w-0 cursor-pointer appearance-none truncate rounded-lg bg-transparent pl-8 pr-6 font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+      >
+        {LANGUAGES.map((o) => (
+          <option key={o.code} value={o.code} lang={o.code}>
+            {o.code === current ? o.short : `${o.label} · ${o.hint}`}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2 size-4 text-muted" aria-hidden />
+    </label>
   )
 }
 

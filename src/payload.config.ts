@@ -35,10 +35,14 @@ export default buildConfig({
   collections: [Providers, Requests, Reviews, Categories, Localities, News, Media, Users, Notifications, AuditLogs, OtpChallenges],
   globals: [SiteSettings],
   localization: {
-    // Assamese ('as') is added in P1; the data model is ready for it.
+    // Assamese ('as') can be added the same way; the data model is ready for it.
     locales: [
       { label: 'English', code: 'en' },
       { label: 'বাংলা', code: 'bn' },
+      // Manipuri (Meitei) in both scripts. Blank fields fall back so a page is never empty:
+      // Bengali-script Manipuri → Bengali → English, Meitei Mayek → English.
+      { label: 'ꯃꯩꯇꯩꯂꯣꯟ · Manipuri (Meitei Mayek)', code: 'mni-Mtei', fallbackLocale: 'en' },
+      { label: 'মৈতৈলোন · Manipuri (Bengali script)', code: 'mni-Beng', fallbackLocale: ['bn', 'en'] },
     ],
     defaultLocale: 'en',
     fallback: true,

@@ -5,6 +5,7 @@ import { Container, PageTitle } from '@/components/ui'
 import type { Media } from '@/payload-types'
 import { getNewsListCached } from '@/lib/cache'
 import { getContentLocale } from '@/lib/server'
+import { fmtDate } from '@/lib/format'
 
 export async function generateMetadata() {
   const t = await getTranslations('news')
@@ -14,7 +15,7 @@ export async function generateMetadata() {
 export default async function NewsList() {
   const [t, locale, contentLocale] = await Promise.all([getTranslations('news'), getLocale(), getContentLocale()])
   const docs = await getNewsListCached(contentLocale, 30)
-  const fmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
+  const fmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium' })
   return (
     <>
       <PageTitle title={t('title')} />

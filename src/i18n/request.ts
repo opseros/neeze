@@ -1,12 +1,9 @@
 import { cookies } from 'next/headers'
 import { getRequestConfig } from 'next-intl/server'
 
-export const LOCALES = ['bn', 'en'] as const
-export type Locale = (typeof LOCALES)[number]
-export const DEFAULT_LOCALE: Locale = 'bn'
-export const LOCALE_COOKIE = 'NEXT_LOCALE'
+import { DEFAULT_LOCALE, isLocale, type Locale, LOCALE_COOKIE } from './locales'
 
-export const isLocale = (v: unknown): v is Locale => LOCALES.includes(v as Locale)
+export { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, LOCALES, type Locale } from './locales'
 
 // Locale lives in a cookie, not the URL, so /admin and /api stay untouched.
 export default getRequestConfig(async () => {

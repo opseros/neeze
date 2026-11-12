@@ -6,6 +6,7 @@ import { Container } from '@/components/ui'
 import type { News } from '@/payload-types'
 import { getNewsBySlugCached } from '@/lib/cache'
 import { getContentLocale } from '@/lib/server'
+import { fmtDate } from '@/lib/format'
 
 async function load(slug: string): Promise<News | null> {
   return getNewsBySlugCached(slug.slice(0, 200), await getContentLocale())
@@ -21,7 +22,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
   if (!n) notFound()
   const t = await getTranslations('news')
   const locale = await getLocale()
-  const fmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
+  const fmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium' })
   return (
     <>
       <Container className="max-w-3xl py-8 md:py-12">

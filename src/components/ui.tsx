@@ -7,6 +7,7 @@ import type { Category, Locality, Provider } from '@/payload-types'
 import { SignInButton, type Providers } from './auth'
 import { HeaderNav, LanguageToggle, MobileTabBar } from './nav'
 import { CategoryIcon } from './icons'
+import { usesBengaliNames } from '@/i18n/locales'
 
 export function Container({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <div className={`mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
@@ -172,7 +173,7 @@ export async function ProviderCard({ p, locale }: { p: Provider; locale: string 
   const base = typeof p.baseLocality === 'object' ? (p.baseLocality as Locality) : null
   const cats = objs<Category>(p.categories as unknown[])
   const primary = cats[0]
-  const displayName = locale === 'bn' && p.nameBn ? p.nameBn : p.name
+  const displayName = usesBengaliNames(locale) && p.nameBn ? p.nameBn : p.name
   return (
     <li className="lift group flex flex-col rounded-2xl border border-line bg-white p-4 shadow-card">
       <Link href={`/p/${p.id}`} className="flex flex-1 gap-3">

@@ -104,14 +104,19 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'bn') | ('en' | 'bn')[];
+  fallbackLocale:
+    | ('false' | 'none' | 'null')
+    | false
+    | null
+    | ('en' | 'bn' | 'mni-Mtei' | 'mni-Beng')
+    | ('en' | 'bn' | 'mni-Mtei' | 'mni-Beng')[];
   globals: {
     'site-settings': SiteSetting;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
-  locale: 'en' | 'bn';
+  locale: 'en' | 'bn' | 'mni-Mtei' | 'mni-Beng';
   widgets: {
     collections: CollectionsWidget;
   };
