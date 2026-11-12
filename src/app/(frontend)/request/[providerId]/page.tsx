@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server'
 import { RequestForm } from '@/components/forms'
 import { Container, PageTitle, VerificationBadge } from '@/components/ui'
 import type { Locality } from '@/payload-types'
+import { enabledProviders } from '@/lib/auth/server'
 import { getProviderCached } from '@/lib/cache'
 import { getContentLocale, getCurrentUser, getLocalities, getSelectedLocality } from '@/lib/server'
 
@@ -42,6 +43,7 @@ export default async function RequestPage({ params }: { params: Promise<{ provid
             localities={localities.map((l) => ({ id: l.id, name: l.name }))}
             defaultLocality={selected?.id ?? base?.id}
             user={user ? { id: user.id, name: user.name, phone: user.phone } : null}
+            providers={enabledProviders()}
           />
         </div>
         <aside className="hidden md:block md:sticky md:top-24 md:self-start">

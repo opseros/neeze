@@ -15,13 +15,14 @@ function secret(): string {
 
 const b64 = (b: Buffer | string) => Buffer.from(b).toString('base64url')
 
-export function signSession(userId: number | string, now = Date.now()): string {
-  const body = b64(JSON.stringify({ uid: userId, exp: Math.floor(now / 1000) + SESSION_MAX_AGE_S }))
+/** Sign any small JSON value with an expiry. `purpose` stops one kind of token being replayed as another. */
+export function signValue(purpose: string, value: Record<string, unknown>, ttlSeconds: number, now = Date.now()): string {
+  const body = b64(JSON.stringify({ ...value, _p: purpose, exp: Math.floor(now / 1000) + ttlSeconds }))
   const sig = b64(createHmac('sha256', secret()).update(body).digest())
   return `${body}.${sig}`
 }
 
-export function verifySession(token: string | undefined | null, now = Date.now()): { uid: number | string } | null {
+export function verifyValue<T extends Record<string, unknown>>(purpose: string, token: string | undefined | null, now = Date.now()): T | null {
   if (!token) return null
   const [body, sig] = token.split('.')
   if (!body || !sig) return null
@@ -29,12 +30,21 @@ export function verifySession(token: string | undefined | null, now = Date.now()
   const given = Buffer.from(sig, 'base64url')
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null
   try {
-    const data = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as { uid: number | string; exp: number }
-    if (typeof data.exp !== 'number' || data.exp * 1000 < now) return null
-    return { uid: data.uid }
+    const data = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as T & { exp: number; _p: string }
+    if (data._p !== purpose || typeof data.exp !== 'number' || data.exp * 1000 < now) return null
+    return data
   } catch {
     return null
   }
+}
+
+export function signSession(userId: number | string, now = Date.now()): string {
+  return signValue('session', { uid: userId }, SESSION_MAX_AGE_S, now)
+}
+
+export function verifySession(token: string | undefined | null, now = Date.now()): { uid: number | string } | null {
+  const v = verifyValue<{ uid: number | string }>('session', token, now)
+  return v ? { uid: v.uid } : null
 }
 
 export function readCookie(header: string | null, name: string): string | undefined {
@@ -46,8 +56,12 @@ export function readCookie(header: string | null, name: string): string | undefi
   return undefined
 }
 
-export function sessionCookieHeader(token: string | null): string {
+export function cookieHeader(name: string, value: string | null, maxAgeSeconds: number): string {
   const secure = process.env.NODE_ENV === 'production' ? '; Secure' : ''
-  if (!token) return `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`
-  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE_S}${secure}`
+  if (!value) return `${name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`
+  return `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}${secure}`
+}
+
+export function sessionCookieHeader(token: string | null): string {
+  return cookieHeader(SESSION_COOKIE, token, SESSION_MAX_AGE_S)
 }

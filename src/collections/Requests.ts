@@ -101,6 +101,10 @@ export const Requests: CollectionConfig = {
 
         if (operation === 'create') {
           if (!req.user) throw new APIError('Sign in to send a request.', 401)
+          // Every account needs a mobile number before sending a request: the provider calls it.
+          if (!isOps(req.user) && !(req.user as { phone?: string | null }).phone) {
+            throw new APIError('phone_required', 428)
+          }
           const phone = normalizeIndianMobile(String(data.contactPhone ?? ''))
           if (!phone) throw new APIError('Enter a valid 10-digit mobile number.', 400)
           const provider = await req.payload.findByID({ collection: 'providers', id: idOf(data.provider), depth: 0, overrideAccess: true }).catch(() => null)
@@ -181,6 +185,9 @@ export const Requests: CollectionConfig = {
       method: 'post',
       handler: async (req) => {
         if (!req.user) return Response.json({ error: 'signin_required' }, { status: 401 })
+        if (!isOps(req.user) && !(req.user as { phone?: string | null }).phone) {
+          return Response.json({ error: 'phone_required' }, { status: 428 })
+        }
         let body: Record<string, unknown> = {}
         try {
           body = (await req.json?.()) ?? {}

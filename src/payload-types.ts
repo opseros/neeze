@@ -311,9 +311,21 @@ export interface User {
   id: number;
   name?: string | null;
   /**
-   * E.164, e.g. +919876543210. Set by OTP sign-in.
+   * Mobile in E.164, e.g. +919876543210. Required before sending requests; providers use it to call.
    */
   phone?: string | null;
+  phoneVerified?: boolean | null;
+  emailVerified?: boolean | null;
+  /**
+   * Google / Microsoft accounts linked to this user.
+   */
+  identities?:
+    | {
+        provider: string;
+        subject: string;
+        id?: string | null;
+      }[]
+    | null;
   roles: ('super-admin' | 'admin' | 'moderator' | 'editor' | 'provider' | 'customer')[];
   preferredLanguage?: ('en' | 'bn' | 'as') | null;
   locality?: (number | null) | Locality;
@@ -466,7 +478,9 @@ export interface AuditLog {
  */
 export interface OtpChallenge {
   id: number;
-  phone: string;
+  target: string;
+  purpose: 'email-login' | 'verify-phone';
+  user?: (number | null) | User;
   codeHash: string;
   expiresAt: string;
   attempts?: number | null;
@@ -771,6 +785,15 @@ export interface MediaSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   phone?: T;
+  phoneVerified?: T;
+  emailVerified?: T;
+  identities?:
+    | T
+    | {
+        provider?: T;
+        subject?: T;
+        id?: T;
+      };
   roles?: T;
   preferredLanguage?: T;
   locality?: T;
@@ -813,7 +836,9 @@ export interface AuditLogsSelect<T extends boolean = true> {
  * via the `definition` "otp-challenges_select".
  */
 export interface OtpChallengesSelect<T extends boolean = true> {
-  phone?: T;
+  target?: T;
+  purpose?: T;
+  user?: T;
   codeHash?: T;
   expiresAt?: T;
   attempts?: T;

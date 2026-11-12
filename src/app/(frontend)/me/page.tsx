@@ -1,9 +1,13 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 
 import { LanguagePicker, OutboxList } from '@/components/client'
-import { CancelRequestButton, SignInForm, SignOutButton } from '@/components/forms'
+import { AuthPanel, SignOutButton } from '@/components/auth'
+import { CancelRequestButton } from '@/components/forms'
 import { Container, PageTitle } from '@/components/ui'
 import type { Provider } from '@/payload-types'
+import { redirect } from 'next/navigation'
+
+import { enabledProviders } from '@/lib/auth/server'
 import { getCurrentUser, getPayloadClient } from '@/lib/server'
 
 const CANCELLABLE = new Set(['submitted', 'assigned', 'contacted', 'quoted', 'accepted'])
@@ -29,8 +33,8 @@ export default async function MePage() {
       <>
         <PageTitle title={t('me.title')} />
         <Container className="grid max-w-xl gap-4 py-6 md:py-10">
-          <div className="card p-5 md:p-6">
-            <SignInForm />
+          <div className="card p-6 md:p-8">
+            <AuthPanel providers={enabledProviders()} next="/me" />
           </div>
           <OutboxList />
         </Container>
@@ -38,6 +42,7 @@ export default async function MePage() {
     )
   }
 
+  if (!user.phone) redirect('/account/complete?next=/me')
   const payload = await getPayloadClient()
   // Access control does the filtering: a customer only ever sees their own requests.
   const { docs } = await payload.find({
@@ -58,7 +63,8 @@ export default async function MePage() {
         <aside className="grid content-start gap-4 md:sticky md:top-24 md:self-start">
         <section className="card flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate font-semibold">{user.name ?? user.phone}</p>
+            <p className="truncate font-semibold">{user.name ?? user.email}</p>
+            {user.email && <p className="truncate text-sm text-muted">{user.email}</p>}
             <p className="text-sm text-muted">{user.phone}</p>
           </div>
           <SignOutButton />

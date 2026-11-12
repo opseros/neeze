@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { resendAdapter } from '@payloadcms/email-resend'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -53,6 +54,14 @@ export default buildConfig({
     // Vercel runs migrations once in the build (`vercel-build`); elsewhere they run on server start.
     prodMigrations: process.env.VERCEL ? undefined : migrations,
   }),
+  // Sign-in codes and admin password resets. Without RESEND_API_KEY (local dev) emails print to the console.
+  email: process.env.RESEND_API_KEY
+    ? resendAdapter({
+        apiKey: process.env.RESEND_API_KEY,
+        defaultFromAddress: process.env.EMAIL_FROM ?? 'no-reply@opseros.com',
+        defaultFromName: 'Neeze',
+      })
+    : undefined,
   sharp,
   plugins: [r2StoragePlugin()],
   graphQL: { disable: true },

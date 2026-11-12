@@ -1,5 +1,6 @@
 import * as migration_20261112_053944_initial from './20261112_053944_initial';
 import * as migration_20261112_055312_media_storage_prefix from './20261112_055312_media_storage_prefix';
+import * as migration_20261112_081627_social_and_email_signin from './20261112_081627_social_and_email_signin';
 
 export const migrations = [
   {
@@ -10,6 +11,11 @@ export const migrations = [
   {
     up: migration_20261112_055312_media_storage_prefix.up,
     down: migration_20261112_055312_media_storage_prefix.down,
-    name: '20261112_055312_media_storage_prefix'
+    name: '20261112_055312_media_storage_prefix',
+  },
+  {
+    up: migration_20261112_081627_social_and_email_signin.up,
+    down: migration_20261112_081627_social_and_email_signin.down,
+    name: '20261112_081627_social_and_email_signin'
   },
 ];

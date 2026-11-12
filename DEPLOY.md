@@ -48,9 +48,13 @@ Remove the `*.vercel.app` line if you don't need uploads on preview deployments.
 | `PAYLOAD_SECRET` | `openssl rand -hex 32` |
 | `SESSION_SECRET` | another `openssl rand -hex 32` |
 | `NEXT_PUBLIC_SITE_URL` | `https://neeze.opseros.com` (no trailing slash) |
-| `OTP_PROVIDER` | `msg91` (only after TRAI DLT approval) |
-| `MSG91_AUTH_KEY` | from MSG91 |
-| `MSG91_TEMPLATE_ID` | from MSG91 (DLT-approved OTP template) |
+| `GOOGLE_CLIENT_ID` | see "Sign-in" below |
+| `GOOGLE_CLIENT_SECRET` | see "Sign-in" below |
+| `MICROSOFT_CLIENT_ID` | see "Sign-in" below |
+| `MICROSOFT_CLIENT_SECRET` | see "Sign-in" below |
+| `RESEND_API_KEY` | for email codes, see "Sign-in" below |
+| `EMAIL_FROM` | `neeze@opseros.com` |
+| `OTP_PROVIDER` | `whatsapp` (mobile number check, see below) |
 | `R2_BUCKET` | `neeze-media` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
 | `R2_ACCESS_KEY_ID` | from the R2 token |
@@ -70,11 +74,67 @@ NODE_ENV=production SEED_ADMIN_EMAIL=you@opseros.com SEED_ADMIN_PASSWORD='<stron
 
 5. Open `https://neeze.opseros.com/admin`, sign in and change the password.
 
-## Until DLT is approved
+## Sign-in: Google, Microsoft and email
 
-In production, `OTP_PROVIDER=console` refuses to run, so customer sign-in (and therefore sending requests) is blocked until SMS works. Vercel builds every deployment, previews included, with `NODE_ENV=production`, so previews behave the same. Directory, search, provider pages, saved providers, emergency numbers and the admin panel all work.
+People sign in with **Google**, **Microsoft** or **an emailed 6-digit code**. Every account must add a **mobile number** before sending a request. The number is unique, so one number can't be on two accounts. The same verified email always lands in the same account, whichever way the person signs in.
 
-So start TRAI DLT registration first; it's on the critical path. Test the request flow locally (`npm run dev`, where the code is shown on screen) until then.
+Only the buttons you configure are shown; email works on its own.
+
+### Google
+
+1. console.cloud.google.com → create a project "Neeze".
+2. **APIs & Services → OAuth consent screen**: External; app name *Neeze*; support email; authorised domain `opseros.com`; scopes `openid`, `email`, `profile`. Then **Publish app**. These basic scopes don't need Google's security review. Adding a logo does trigger a brand check.
+3. **Credentials → Create credentials → OAuth client ID → Web application**:
+   - Authorised JavaScript origin: `https://neeze.opseros.com`
+   - Authorised redirect URI: `https://neeze.opseros.com/auth/google/callback`
+   - For local testing, also add `http://localhost:3000/auth/google/callback`.
+4. Copy the client ID and secret into `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+
+### Microsoft
+
+1. entra.microsoft.com → **App registrations → New registration**: name *Neeze*; account types **"Accounts in any organizational directory and personal Microsoft accounts"**; redirect URI (Web) `https://neeze.opseros.com/auth/microsoft/callback`.
+2. **Certificates & secrets → New client secret**. Note the expiry date and put a reminder in the calendar: sign-in stops when it expires.
+3. **Token configuration → Add optional claim → ID**: tick `email` and `xms_edov`.
+4. Copy *Application (client) ID* → `MICROSOFT_CLIENT_ID` and the secret *value* → `MICROSOFT_CLIENT_SECRET`. Leave `MICROSOFT_TENANT` unset (it defaults to `common`).
+5. Optional: Microsoft *publisher verification*. Without it, the consent screen says "unverified".
+
+For work and school Microsoft accounts whose email domain Microsoft hasn't verified, Neeze asks for an email code once before linking. This stops anyone claiming someone else's email address through a self-made tenant.
+
+### Email codes (Resend)
+
+1. resend.com → **Domains → Add** `opseros.com` → add the DNS records it shows (SPF, DKIM) → wait for *Verified*.
+2. **API keys → Create** → `RESEND_API_KEY`.
+3. `EMAIL_FROM` = an address on that domain, e.g. `neeze@opseros.com`.
+
+Resend has a free tier; check its current monthly limit against your expected sign-ins. Without `RESEND_API_KEY`, production refuses email sign-in instead of failing silently.
+
+### Mobile number check
+
+When `OTP_PROVIDER` is set (WhatsApp, below), a new mobile number is confirmed with a code before it's saved. If someone typed a number they don't own, the real owner can still claim it by verifying it. Without a provider, numbers are saved unconfirmed but still unique. Set `PHONE_VERIFICATION=off` to skip the code even when WhatsApp is configured.
+
+## Mobile verification codes: WhatsApp
+
+Used to confirm the mobile number on each account. WhatsApp needs no TRAI DLT registration: you need a verified Meta business and one approved template.
+
+1. **Meta Business verification**: business.facebook.com → Security Centre → Start verification. Have the company PAN/GST and a website on the same name ready. Register under the Indian entity so India's domestic authentication rate applies.
+2. **WhatsApp Business Account + phone number**: developers.facebook.com → Create app (Business) → add *WhatsApp*. Add a phone number that is **not** already on the WhatsApp app (a new SIM or landline works), and verify it.
+3. **Authentication template**: WhatsApp Manager → Message templates → Create → category **Authentication** → *Copy code* button → name it `neeze_login_code`, language English. Meta generates the wording; approval is usually quick.
+4. **Permanent token**: Business settings → Users → System users → add one with *Admin* role → assign the WhatsApp app and account → Generate token with `whatsapp_business_messaging` and `whatsapp_business_management`. Temporary tokens from the app dashboard expire in 24 hours.
+5. **Vercel variables**:
+
+| Variable | Value |
+| --- | --- |
+| `OTP_PROVIDER` | `whatsapp` |
+| `WHATSAPP_ACCESS_TOKEN` | the system user token |
+| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp → API setup → *Phone number ID* (not the phone number itself) |
+| `WHATSAPP_OTP_TEMPLATE` | `neeze_login_code` |
+| `WHATSAPP_OTP_TEMPLATE_LANG` | `en` |
+
+6. Add a payment method in WhatsApp Manager. Until business verification is done, Meta caps new accounts at a low daily message limit.
+
+**Later, add SMS as a backup** for people without WhatsApp: finish DLT, set the MSG91 variables and `OTP_FALLBACK=msg91`. If WhatsApp can't deliver, the same code goes by SMS, and the screen says which.
+
+`OTP_PROVIDER=console` refuses to run in production. Leave `OTP_PROVIDER` unset until WhatsApp is ready; numbers are then saved without a code.
 
 ## Speed
 
@@ -95,6 +155,7 @@ The next deploy applies it automatically.
 
 ## Checks after the first deploy
 
+- [ ] Sign in with Google, then Microsoft, then an email code using the same address: all three land in one account
 - [ ] `/manifest.webmanifest` loads, and Chrome on Android offers "Add to Home screen"
 - [ ] Upload a photo in Admin → Media; its URL starts with `https://neeze-media.opseros.com/media/`
 - [ ] Turn on airplane mode after visiting a provider: Saved and Emergency pages still open

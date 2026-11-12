@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { PwaChrome } from '@/components/client'
 import { MobileNav, SiteFooter, SiteHeader } from '@/components/ui'
+import { enabledProviders } from '@/lib/auth/server'
 import { getSiteSettings } from '@/lib/server'
 import { SESSION_COOKIE } from '@/lib/session'
 import './styles.css'
@@ -65,7 +66,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
               </Link>
             </div>
           )}
-          <SiteHeader locale={locale} signedIn={signedIn} />
+          <SiteHeader locale={locale} signedIn={signedIn} providers={enabledProviders()} />
           <main id="main" className="flex-1">
             {children}
           </main>

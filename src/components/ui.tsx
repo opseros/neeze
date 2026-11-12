@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 
 import type { Category, Locality, Provider } from '@/payload-types'
+import { SignInButton, type Providers } from './auth'
 import { HeaderNav, LanguageToggle, MobileTabBar } from './nav'
 import { CategoryIcon } from './icons'
 
@@ -22,7 +23,7 @@ export function Logo({ className = '' }: { className?: string }) {
 
 /* ---------- Site chrome ---------- */
 
-export async function SiteHeader({ locale, signedIn }: { locale: string; signedIn: boolean }) {
+export async function SiteHeader({ locale, signedIn, providers }: { locale: string; signedIn: boolean; providers: Providers }) {
   const t = await getTranslations()
   const links = [
     { href: '/explore?vertical=services', label: t('nav.services'), match: 'services' },
@@ -44,9 +45,13 @@ export async function SiteHeader({ locale, signedIn }: { locale: string; signedI
         </form>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <LanguageToggle current={locale} label={t('nav.language')} />
-          <Link href="/me" className="hidden h-10 items-center rounded-lg border border-line px-3 text-sm font-semibold text-ink hover:bg-surface md:inline-flex">
-            {signedIn ? t('nav.account') : t('nav.signIn')}
-          </Link>
+          {signedIn ? (
+            <Link href="/me" className="hidden h-10 items-center rounded-lg border border-line px-3 text-sm font-semibold text-ink hover:bg-surface md:inline-flex">
+              {t('nav.account')}
+            </Link>
+          ) : (
+            <SignInButton label={t('nav.signIn')} providers={providers} className="hidden h-10 items-center rounded-lg bg-brand-navy px-4 text-sm font-semibold text-white hover:bg-brand-navy/90 md:inline-flex" />
+          )}
         </div>
       </Container>
     </header>

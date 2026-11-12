@@ -4,13 +4,15 @@ import { adminsOnly } from '../access/roles'
 
 const nobody = () => false
 
-/** Hashed OTP challenges. Never readable through the API. */
+/** Hashed one-time codes for email sign-in and phone verification. Never readable through the API. */
 export const OtpChallenges: CollectionConfig = {
   slug: 'otp-challenges',
   admin: { hidden: true },
   access: { read: nobody, create: nobody, update: nobody, delete: nobody },
   fields: [
-    { name: 'phone', type: 'text', required: true, index: true },
+    { name: 'target', type: 'text', required: true, index: true }, // email address or E.164 phone
+    { name: 'purpose', type: 'select', required: true, index: true, options: ['email-login', 'verify-phone'] },
+    { name: 'user', type: 'relationship', relationTo: 'users', index: true },
     { name: 'codeHash', type: 'text', required: true },
     { name: 'expiresAt', type: 'date', required: true },
     { name: 'attempts', type: 'number', defaultValue: 0 },

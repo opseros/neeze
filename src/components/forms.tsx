@@ -3,124 +3,12 @@
 import { CircleCheck, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { OUTBOX_EVENT, flushOutbox, newIdempotencyKey, outboxStore, submitRequest } from '@/lib/idb'
+import { OUTBOX_EVENT, newIdempotencyKey, outboxStore, submitRequest } from '@/lib/idb'
+import { AuthPanel, ProfileStep, type Providers } from './auth'
 
 type AuthUser = { id: number; name?: string | null; phone?: string | null } | null
-
-/* ---------- Phone OTP sign-in ---------- */
-
-export function SignInForm({ onSignedIn, defaultName }: { onSignedIn?: (u: NonNullable<AuthUser>) => void; defaultName?: string }) {
-  const t = useTranslations('auth')
-  const router = useRouter()
-  const [phone, setPhone] = useState('')
-  const [code, setCode] = useState('')
-  const [step, setStep] = useState<'phone' | 'code'>('phone')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [devCode, setDevCode] = useState<string | null>(null)
-
-  const errorText = (key?: string) => {
-    const known = ['invalid_phone', 'too_soon', 'too_many', 'wrong_code', 'expired', 'too_many_attempts']
-    return t(`errors.${known.includes(key ?? '') ? key : 'generic'}` as 'errors.generic')
-  }
-
-  const requestCode = async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/users/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ phone }) })
-      const data = await res.json()
-      if (!res.ok) return setError(errorText(data.error))
-      setDevCode(data.devCode ?? null)
-      setStep('code')
-    } catch {
-      setError(errorText())
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const verify = async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/users/otp/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ phone, code, name: defaultName }) })
-      const data = await res.json()
-      if (!res.ok) return setError(errorText(data.error))
-      await flushOutbox().catch(() => 0)
-      if (onSignedIn) onSignedIn(data.user)
-      else router.refresh()
-    } catch {
-      setError(errorText())
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <form
-      className="grid gap-3"
-      onSubmit={(e) => {
-        e.preventDefault()
-        if (step === 'phone') requestCode()
-        else verify()
-      }}
-    >
-      <p className="font-semibold text-ink">{t('title')}</p>
-      {step === 'phone' ? (
-        <label className="field">
-          <span>{t('phone')}</span>
-          <div className="flex items-center gap-2">
-            <span className="text-muted">+91</span>
-            <input inputMode="numeric" autoComplete="tel-national" required maxLength={14} value={phone} onChange={(e) => setPhone(e.target.value)} className="input flex-1" />
-          </div>
-        </label>
-      ) : (
-        <>
-          <p className="text-sm text-muted">{t('codeSent', { phone })}</p>
-          {devCode && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-900">{t('devCode', { code: devCode })}</p>}
-          <label className="field">
-            <span>{t('code')}</span>
-            <input inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value)} className="input tracking-[0.4em]" />
-          </label>
-        </>
-      )}
-      {error && (
-        <p role="alert" className="text-sm text-red-700">
-          {error}
-        </p>
-      )}
-      <button type="submit" className="btn-primary" disabled={busy}>
-        {step === 'phone' ? t('sendCode') : t('verify')}
-      </button>
-      {step === 'code' && (
-        <button type="button" className="text-sm text-muted underline" onClick={() => setStep('phone')}>
-          {t('resend')}
-        </button>
-      )}
-    </form>
-  )
-}
-
-export function SignOutButton() {
-  const t = useTranslations('auth')
-  const router = useRouter()
-  return (
-    <button
-      type="button"
-      className="btn-secondary"
-      onClick={async () => {
-        await fetch('/api/users/otp/logout', { method: 'POST' })
-        await fetch('/api/users/logout', { method: 'POST' }).catch(() => {})
-        router.refresh()
-      }}
-    >
-      {t('signOut')}
-    </button>
-  )
-}
 
 /* ---------- Service / appointment request ---------- */
 
@@ -130,12 +18,15 @@ type RequestFormProps = {
   localities: { id: number; name: string }[]
   defaultLocality?: number
   user: AuthUser
+  providers: Providers
 }
 
-export function RequestForm({ provider, kind, localities, defaultLocality, user: initialUser }: RequestFormProps) {
+const draftKey = (providerId: number) => `neeze:draft:${providerId}`
+
+export function RequestForm({ provider, kind, localities, defaultLocality, user: initialUser, providers }: RequestFormProps) {
   const t = useTranslations('request')
   const [user, setUser] = useState<AuthUser>(initialUser)
-  const [state, setState] = useState<'form' | 'signin' | 'sending' | 'sent' | 'queued' | 'error'>('form')
+  const [state, setState] = useState<'form' | 'signin' | 'phone' | 'sending' | 'sent' | 'queued' | 'error'>('form')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [code, setCode] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -150,6 +41,35 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
   })
   const [key] = useState(newIdempotencyKey)
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [k]: e.target.value })
+
+  // Keep what was typed if the person leaves for Google/Microsoft sign-in and comes back.
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(draftKey(provider.id))
+      if (saved) {
+        const d = JSON.parse(saved) as Partial<typeof form>
+        setForm((f) => ({ ...f, ...d, contactName: f.contactName || d.contactName || '', contactPhone: f.contactPhone || d.contactPhone || '' }))
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provider.id])
+  const saveDraft = () => {
+    try {
+      sessionStorage.setItem(draftKey(provider.id), JSON.stringify(form))
+    } catch {}
+  }
+  // Bring the sign-in / mobile step into view (on phones the button that triggered it is far down the page).
+  const topRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (state === 'signin' || state === 'phone' || state === 'sent' || state === 'queued') {
+      topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [state])
+  const clearDraft = () => {
+    try {
+      sessionStorage.removeItem(draftKey(provider.id))
+    } catch {}
+  }
 
   const body = () => ({
     idempotencyKey: key,
@@ -167,6 +87,7 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
     const b = body()
     const queue = async () => {
       await outboxStore.put({ idempotencyKey: key, body: b, providerName: provider.name, createdAt: Date.now(), attempts: 0 })
+      clearDraft()
       window.dispatchEvent(new Event(OUTBOX_EVENT))
       localStorage.setItem('neeze:engaged', '1')
       setState('queued')
@@ -175,12 +96,14 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
     try {
       const r = await submitRequest(b)
       if (r.ok) {
+        clearDraft()
         setCode(r.data.code ?? null)
         localStorage.setItem('neeze:engaged', '1')
         window.dispatchEvent(new Event('neeze:engaged'))
         return setState('sent')
       }
       if (r.status === 401) return setState('signin')
+      if (r.status === 428) return setState('phone')
       setErrorMsg(r.data.error ?? null)
       setState('error')
     } catch {
@@ -190,7 +113,7 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
 
   if (state === 'sent' || state === 'queued') {
     return (
-      <div className="grid justify-items-center gap-3 py-6 text-center" role="status">
+      <div ref={topRef} className="grid justify-items-center gap-3 py-6 text-center" role="status">
         {state === 'sent' ? <CircleCheck className="size-12 text-brand-teal" aria-hidden /> : <Inbox className="size-12 text-brand-blue" aria-hidden />}
         <p className="text-lg font-semibold">{state === 'sent' ? t('sent') : t('queued')}</p>
         {state === 'sent' && <p className="text-muted">{t('sentBody', { code: code ?? '', name: provider.name })}</p>}
@@ -201,13 +124,32 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
     )
   }
 
+  if (state === 'phone') {
+    return (
+      <div ref={topRef} className="mx-auto max-w-md">
+        <ProfileStep
+          initialName={user?.name ?? form.contactName}
+          onDone={(u) => {
+            setUser(u)
+            setForm((f) => ({ ...f, contactPhone: f.contactPhone || (u.phone ?? '').replace('+91', '') }))
+            send()
+          }}
+        />
+      </div>
+    )
+  }
+
   if (state === 'signin' || (!user && state !== 'form')) {
     return (
-      <div className="mx-auto max-w-md">
-        <SignInForm
-          defaultName={form.contactName}
-          onSignedIn={(u) => {
+      <div ref={topRef} className="mx-auto max-w-md">
+        <AuthPanel
+          providers={providers}
+          next={`/request/${provider.id}`}
+          beforeRedirect={saveDraft}
+          onDone={(u) => {
             setUser(u)
+            if (u.needsPhone) return setState('phone')
+            setForm((f) => ({ ...f, contactName: f.contactName || u.name || '', contactPhone: f.contactPhone || (u.phone ?? '').replace('+91', '') }))
             send()
           }}
         />
@@ -217,11 +159,14 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
 
   return (
     <form
-      className="grid gap-4"
+      ref={topRef as unknown as React.Ref<HTMLFormElement>}
+      className="grid scroll-mt-24 gap-4"
       onSubmit={(e) => {
         e.preventDefault()
-        if (!user) setState('signin')
-        else send()
+        if (!user) {
+          saveDraft()
+          setState('signin')
+        } else send()
       }}
     >
       {kind === 'appointment' && <p className="rounded-lg bg-brand-teal/10 p-3 text-sm text-ink">{t('appointmentNote')}</p>}
