@@ -1,0 +1,164 @@
+{
+  "app": { "tagline": "Everything local, connected.", "skip": "Skip to content" },
+  "welcome": {
+    "title": "Welcome to Neeze",
+    "body": "Find trusted local services, doctors and businesses in Silchar, and send them a request in a few taps.",
+    "chooseLanguage": "Choose your language",
+    "continue": "Continue"
+  },
+  "nav": { "home": "Home", "explore": "Explore", "news": "News", "saved": "Saved", "me": "Me" },
+  "home": {
+    "searchPlaceholder": "Electrician, doctor, AC repair…",
+    "search": "Search",
+    "yourArea": "Your area",
+    "allSilchar": "All of Silchar",
+    "change": "Change",
+    "categories": "Browse",
+    "servicesTitle": "Neeze Services",
+    "servicesBody": "Electricians, plumbers, mechanics and more, near you.",
+    "seeAll": "See all",
+    "latestNews": "Latest local news",
+    "emergency": "Emergency numbers"
+  },
+  "verticals": {
+    "services": "Services",
+    "health": "Health",
+    "business": "Business",
+    "market": "Market",
+    "education": "Education",
+    "fitness": "Fitness",
+    "travel": "Travel"
+  },
+  "explore": {
+    "title": "Explore",
+    "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "noResultsTitle": "Nothing found yet",
+    "noResultsBody": "Try a shorter word, another spelling, or a nearby area. We are adding new providers every week.",
+    "filterArea": "Area",
+    "filterCategory": "Category",
+    "any": "Any",
+    "apply": "Apply",
+    "serves": "Serves {area}"
+  },
+  "provider": {
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "request": "Send a request",
+    "appointment": "Request an appointment",
+    "save": "Save",
+    "saved": "Saved",
+    "services": "Services",
+    "areas": "Areas covered",
+    "hours": "Hours",
+    "address": "Address",
+    "openMap": "Open in Google Maps",
+    "quote": "Quote on request",
+    "from": "From ₹{price}",
+    "fixed": "₹{price}",
+    "lastConfirmed": "Contact details confirmed {date}",
+    "notAccepting": "Not accepting requests right now. Please call instead.",
+    "verification": {
+      "none": "Not verified yet",
+      "phone": "Phone checked",
+      "identity": "Identity checked",
+      "credential": "Licence checked"
+    },
+    "verificationHelp": "This label shows only what Neeze has checked. It is not a guarantee of work quality."
+  },
+  "request": {
+    "titleService": "Request a service",
+    "titleAppointment": "Request an appointment",
+    "to": "To {name}",
+    "appointmentNote": "This is a request, not a confirmed appointment. The clinic will call you to confirm.",
+    "describe": "What do you need?",
+    "describeHint": "For example: ceiling fan not working in the bedroom",
+    "area": "Your area",
+    "address": "Address (optional)",
+    "addressHint": "Shared only with this provider",
+    "date": "Preferred date (optional)",
+    "window": "Preferred time",
+    "windows": { "any": "Any time", "morning": "Morning", "afternoon": "Afternoon", "evening": "Evening" },
+    "urgency": "How urgent?",
+    "urgent": "Urgent",
+    "normal": "Normal",
+    "name": "Your name",
+    "phone": "Mobile number",
+    "submit": "Send request",
+    "sending": "Sending…",
+    "privacy": "Your number is shared only with the provider you chose, so they can call you.",
+    "queued": "You are offline. We saved your request and will send it when you are back online.",
+    "sent": "Request sent",
+    "sentBody": "Your request number is {code}. {name} will contact you. You can track it under Me.",
+    "track": "Track my requests",
+    "error": "Could not send. Please check the details and try again."
+  },
+  "auth": {
+    "title": "Sign in with your mobile",
+    "phone": "Mobile number",
+    "sendCode": "Send code",
+    "code": "6-digit code",
+    "verify": "Verify",
+    "codeSent": "We sent a code to {phone}.",
+    "devCode": "Development code: {code}",
+    "resend": "Resend code",
+    "signOut": "Sign out",
+    "errors": {
+      "invalid_phone": "Enter a valid 10-digit mobile number.",
+      "too_soon": "Please wait a minute before asking for another code.",
+      "too_many": "Too many codes requested. Try again in an hour.",
+      "wrong_code": "That code is not right.",
+      "expired": "That code has expired. Ask for a new one.",
+      "too_many_attempts": "Too many wrong tries. Ask for a new code.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "me": {
+    "title": "My account",
+    "requests": "My requests",
+    "noRequests": "You have not sent any requests yet.",
+    "language": "Language",
+    "status": {
+      "submitted": "Sent",
+      "assigned": "Sent",
+      "contacted": "Provider contacted you",
+      "quoted": "Quote received",
+      "accepted": "Agreed",
+      "in-progress": "Work in progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Declined",
+      "expired": "Expired"
+    },
+    "waiting": "Waiting to send",
+    "cancel": "Cancel request",
+    "cancelReason": "Plans changed"
+  },
+  "saved": {
+    "title": "Saved",
+    "empty": "Tap Save on any provider to keep their number here. Saved providers work offline.",
+    "remove": "Remove"
+  },
+  "emergency": {
+    "title": "Emergency numbers",
+    "body": "These numbers stay available without internet once you have opened this page.",
+    "verifyNote": "Check numbers with official sources."
+  },
+  "news": { "title": "Local news", "empty": "No news yet.", "corrections": "Corrections", "updated": "Updated {date}" },
+  "offline": {
+    "title": "You are offline",
+    "body": "This page is not saved on your phone yet. Your saved providers and emergency numbers still work.",
+    "saved": "Open saved providers",
+    "emergency": "Emergency numbers"
+  },
+  "pwa": {
+    "install": "Add Neeze to your home screen",
+    "installBody": "Opens faster and works with weak signal.",
+    "installButton": "Add",
+    "iosHint": "Tap Share, then “Add to Home Screen”.",
+    "dismiss": "Not now",
+    "update": "A new version of Neeze is ready.",
+    "refresh": "Refresh",
+    "offlineBar": "Offline: showing saved information",
+    "syncing": "Sending your saved requests…"
+  }
+}

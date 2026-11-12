@@ -1,0 +1,60 @@
+import { RichText } from '@payloadcms/richtext-lexical/react'
+import { notFound } from 'next/navigation'
+import { getLocale, getTranslations } from 'next-intl/server'
+
+import { PageHeader } from '@/components/ui'
+import type { News } from '@/payload-types'
+import { getContentLocale, getPayloadClient } from '@/lib/server'
+
+export const dynamic = 'force-dynamic'
+
+async function load(slug: string): Promise<News | null> {
+  const payload = await getPayloadClient()
+  const { docs } = await payload.find({ collection: 'news', where: { slug: { equals: slug } }, limit: 1, depth: 1, locale: await getContentLocale(), overrideAccess: false })
+  return (docs[0] as News) ?? null
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const n = await load((await params).slug)
+  return n ? { title: n.title, description: n.summary ?? undefined } : {}
+}
+
+export default async function Article({ params }: { params: Promise<{ slug: string }> }) {
+  const n = await load((await params).slug)
+  if (!n) notFound()
+  const t = await getTranslations('news')
+  const locale = await getLocale()
+  const fmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
+  return (
+    <>
+      <PageHeader title={t('title')} back="/news" />
+      <article className="grid gap-3 px-4 pt-4">
+        <h2 className="text-2xl font-bold leading-snug">{n.title}</h2>
+        <p className="text-sm text-muted">
+          {n.publishedAt && fmt(n.publishedAt)}
+          {n.updatedAt && n.publishedAt && n.updatedAt > n.publishedAt && ` · ${t('updated', { date: fmt(n.updatedAt) })}`}
+        </p>
+        {n.body && <RichText data={n.body} className="prose max-w-none" />}
+        {n.sources && n.sources.length > 0 && (
+          <ul className="text-sm text-muted">
+            {n.sources.map((s) => (
+              <li key={s.id}>{s.url ? <a href={s.url} className="underline" rel="noopener noreferrer">{s.label}</a> : s.label}</li>
+            ))}
+          </ul>
+        )}
+        {n.corrections && n.corrections.length > 0 && (
+          <section className="card border-amber-300 bg-amber-50 text-sm">
+            <h3 className="font-semibold">{t('corrections')}</h3>
+            <ul className="mt-1 grid gap-1">
+              {n.corrections.map((c) => (
+                <li key={c.id}>
+                  {fmt(c.at)}: {c.note}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </article>
+    </>
+  )
+}
