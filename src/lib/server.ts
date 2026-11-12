@@ -6,32 +6,28 @@ import { getPayload } from 'payload'
 import { cache } from 'react'
 
 import type { Locality, User } from '@/payload-types'
+import { getLocalitiesCached, getSettingsCached } from './cache'
+import { SESSION_COOKIE } from './session'
 
 export const LOCALITY_COOKIE = 'neeze_locality'
 
 export const getPayloadClient = cache(() => getPayload({ config }))
 
-/** The signed-in user (OTP session or staff JWT), or null. */
+export const getContentLocale = async () => ((await getLocale()) === 'en' ? 'en' : 'bn') as 'en' | 'bn'
+
+/**
+ * The signed-in user, or null. Anonymous visitors have no auth cookie, so we return
+ * straight away without starting Payload or touching the database.
+ */
 export const getCurrentUser = cache(async (): Promise<User | null> => {
+  const store = await cookies()
+  if (!store.get(SESSION_COOKIE) && !store.get('payload-token')) return null
   const payload = await getPayloadClient()
   const { user } = await payload.auth({ headers: await headers() })
   return (user as User | null) ?? null
 })
 
-export const getContentLocale = async () => (await getLocale()) as 'en' | 'bn'
-
-export const getLocalities = cache(async (): Promise<Locality[]> => {
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({
-    collection: 'localities',
-    where: { active: { equals: true } },
-    sort: 'sortOrder',
-    limit: 200,
-    depth: 0,
-    locale: await getContentLocale(),
-  })
-  return docs
-})
+export const getLocalities = async (): Promise<Locality[]> => getLocalitiesCached(await getContentLocale())
 
 export const getSelectedLocality = cache(async (): Promise<Locality | null> => {
   const id = Number((await cookies()).get(LOCALITY_COOKIE)?.value)
@@ -39,7 +35,4 @@ export const getSelectedLocality = cache(async (): Promise<Locality | null> => {
   return (await getLocalities()).find((l) => l.id === id) ?? null
 })
 
-export const getSiteSettings = cache(async () => {
-  const payload = await getPayloadClient()
-  return payload.findGlobal({ slug: 'site-settings', locale: await getContentLocale(), depth: 0 })
-})
+export const getSiteSettings = async () => getSettingsCached(await getContentLocale())

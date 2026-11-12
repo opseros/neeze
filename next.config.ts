@@ -24,6 +24,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const nextConfig: NextConfig = {
   images: {
     localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/images/**' }],
+    remotePatterns: process.env.R2_PUBLIC_URL ? [new URL(`${process.env.R2_PUBLIC_URL.replace(/\/$/, '')}/**`)] : [],
     formats: ['image/avif', 'image/webp'],
   },
   webpack: (webpackConfig) => {

@@ -11,9 +11,17 @@ import { Providers } from './collections/Providers'
 import { Requests } from './collections/Requests'
 import { AuditLogs, OtpChallenges } from './collections/System'
 import { Users } from './collections/Users'
+import { r2StoragePlugin } from './lib/storage'
 import { migrations } from './migrations'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Production domain, plus Vercel preview URLs so /admin works on preview deployments.
+const allowedOrigins = [
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+  ...(process.env.VERCEL_BRANCH_URL ? [`https://${process.env.VERCEL_BRANCH_URL}`] : []),
+]
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SITE_URL,
@@ -38,13 +46,16 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URL || '' },
+    // On Vercel use Neon's *pooled* connection string; keep each function's pool small.
+    pool: { connectionString: process.env.DATABASE_URL || '', max: process.env.VERCEL ? 3 : 10 },
     // Dev pushes schema changes automatically; production runs checked-in migrations.
     push: process.env.NODE_ENV !== 'production',
-    prodMigrations: migrations,
+    // Vercel runs migrations once in the build (`vercel-build`); elsewhere they run on server start.
+    prodMigrations: process.env.VERCEL ? undefined : migrations,
   }),
   sharp,
+  plugins: [r2StoragePlugin()],
   graphQL: { disable: true },
-  cors: [process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'],
-  csrf: [process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'],
+  cors: allowedOrigins,
+  csrf: allowedOrigins,
 })

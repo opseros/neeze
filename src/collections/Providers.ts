@@ -2,6 +2,7 @@ import type { Access, CollectionConfig, Where } from 'payload'
 
 import { adminsOnly, isStaff, staffFieldOnly } from '../access/roles'
 import { audit } from '../hooks/audit'
+import { revalidate } from '../hooks/revalidate'
 import { buildSearchText, normalizeIndianMobile } from '../lib/text'
 
 export const PROVIDER_TYPES = [
@@ -193,8 +194,15 @@ export const Providers: CollectionConfig = {
         return data
       },
     ],
+    afterDelete: [
+      ({ doc }) => {
+        revalidate('providers')
+        return doc
+      },
+    ],
     afterChange: [
       async ({ doc, previousDoc, req, operation }) => {
+        revalidate('providers')
         if (operation === 'update' && (previousDoc?.status !== doc.status || previousDoc?.verification !== doc.verification)) {
           await audit(req, 'provider.status-or-verification', 'providers', doc.id, {
             before: { status: previousDoc?.status, verification: previousDoc?.verification },

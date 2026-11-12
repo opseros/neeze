@@ -1,11 +1,12 @@
 'use client'
 
+import { Bookmark, BookmarkCheck, MessageCircle, Phone } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 
 import { OUTBOX_EVENT, type OutboxItem, type SavedProvider, flushOutbox, outboxStore, savedStore } from '@/lib/idb'
-import { setLocaleAction, setLocalityAction } from '@/app/(frontend)/actions'
+import { setLocaleAction } from '@/app/(frontend)/actions'
 
 /* ---------- Language ---------- */
 
@@ -39,37 +40,6 @@ export function LanguagePicker({ current, compact = false }: { current?: string;
   )
 }
 
-/* ---------- Locality ---------- */
-
-export function LocalitySelect({ localities, current, label, allLabel }: { localities: { id: number; name: string }[]; current?: number; label: string; allLabel: string }) {
-  const router = useRouter()
-  const [pending, start] = useTransition()
-  return (
-    <label className="flex items-center gap-2 text-sm text-muted">
-      <span aria-hidden>📍</span>
-      <span className="sr-only">{label}</span>
-      <select
-        className="min-w-0 flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink"
-        value={current ?? ''}
-        disabled={pending}
-        onChange={(e) =>
-          start(async () => {
-            await setLocalityAction(e.target.value ? Number(e.target.value) : null)
-            router.refresh()
-          })
-        }
-      >
-        <option value="">{allLabel}</option>
-        {localities.map((l) => (
-          <option key={l.id} value={l.id}>
-            {l.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
-}
-
 /* ---------- Save provider (offline) ---------- */
 
 export function SaveButton({ provider }: { provider: Omit<SavedProvider, 'savedAt'> }) {
@@ -89,7 +59,7 @@ export function SaveButton({ provider }: { provider: Omit<SavedProvider, 'savedA
   }
   return (
     <button type="button" onClick={toggle} aria-pressed={saved} className="btn-secondary">
-      <span aria-hidden>{saved ? '★' : '☆'}</span> {saved ? t('saved') : t('save')}
+      {saved ? <BookmarkCheck className="size-4 text-brand-teal" aria-hidden /> : <Bookmark className="size-4" aria-hidden />} {saved ? t('saved') : t('save')}
     </button>
   )
 }
@@ -102,9 +72,9 @@ export function SavedList() {
     load()
   }, [])
   if (items === null) return null
-  if (!items.length) return <p className="card text-muted">{t('saved.empty')}</p>
+  if (!items.length) return <p className="card max-w-xl text-muted">{t('saved.empty')}</p>
   return (
-    <ul className="grid gap-3">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((p) => (
         <li key={p.id} className="card">
           <div className="flex items-start justify-between gap-3">
@@ -121,11 +91,11 @@ export function SavedList() {
           </div>
           <div className="mt-3 flex gap-2">
             <a className="btn-primary flex-1" href={`tel:${p.phone}`}>
-              📞 {t('provider.call')}
+              <Phone className="size-4" aria-hidden /> {t('provider.call')}
             </a>
             {p.whatsapp && (
               <a className="btn-whatsapp flex-1" href={`https://wa.me/${p.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-                {t('provider.whatsapp')}
+                <MessageCircle className="size-4" aria-hidden /> {t('provider.whatsapp')}
               </a>
             )}
           </div>
@@ -245,7 +215,7 @@ export function PwaChrome() {
         </div>
       )}
       {waiting && (
-        <div role="status" className="fixed inset-x-3 bottom-20 z-50 flex items-center justify-between gap-3 rounded-xl bg-brand-navy p-3 text-sm text-white shadow-lg">
+        <div role="status" className="fixed inset-x-3 bottom-20 z-50 md:inset-x-auto md:bottom-6 md:right-6 md:w-96 flex items-center justify-between gap-3 rounded-xl bg-brand-navy p-3 text-sm text-white shadow-lg">
           <span>{t('update')}</span>
           <button type="button" className="rounded-lg bg-white px-3 py-1.5 font-semibold text-brand-navy" onClick={() => waiting.postMessage({ type: 'SKIP_WAITING' })}>
             {t('refresh')}
@@ -253,7 +223,7 @@ export function PwaChrome() {
         </div>
       )}
       {engaged && !waiting && (installEvt || showIosHint) && (
-        <div className="fixed inset-x-3 bottom-20 z-40 rounded-xl border border-line bg-white p-4 shadow-lg">
+        <div className="fixed inset-x-3 bottom-20 z-40 md:inset-x-auto md:bottom-6 md:right-6 md:w-96 rounded-xl border border-line bg-white p-4 shadow-lg">
           <p className="font-semibold text-ink">{t('install')}</p>
           <p className="text-sm text-muted">{installEvt ? t('installBody') : t('iosHint')}</p>
           <div className="mt-3 flex justify-end gap-2">

@@ -31,6 +31,7 @@
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
   body { @apply bg-surface text-ink antialiased; }
+  h1, h2, h3 { text-wrap: balance; }
   /* Bengali conjuncts need a little more line height to stay readable. */
   :lang(bn) body { line-height: 1.65; }
   a { -webkit-tap-highlight-color: transparent; }
@@ -44,5 +45,12 @@
   .btn-whatsapp { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#1f8f4e] px-4 py-2.5 font-semibold text-white; }
   .input { @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base text-ink; }
   .field { @apply grid gap-1.5 text-sm font-medium text-ink; }
+  .article-body { @apply grid gap-4 text-[1.0625rem] leading-relaxed text-ink; }
+  .article-body h2 { @apply mt-4 text-xl font-bold; }
+  .article-body h3 { @apply mt-2 text-lg font-semibold; }
+  .article-body a { @apply text-brand-blue underline; }
+  .article-body ul { @apply list-disc pl-6; }
+  .article-body ol { @apply list-decimal pl-6; }
+  .article-body blockquote { @apply border-l-4 border-line pl-4 text-muted; }
   .pill { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
 }

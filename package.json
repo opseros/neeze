@@ -13,7 +13,8 @@
     "payload": "payload",
     "generate:types": "payload generate:types",
     "migrate:create": "payload migrate:create",
-    "migrate": "payload migrate"
+    "migrate": "payload migrate",
+    "vercel-build": "payload migrate && next build --webpack"
   },
   "engines": {
     "node": ">=20.9"
@@ -23,9 +24,11 @@
     "@payloadcms/db-postgres": "^3.93.0",
     "@payloadcms/next": "^3.93.0",
     "@payloadcms/richtext-lexical": "^3.93.0",
+    "@payloadcms/storage-s3": "^3.93.0",
     "@payloadcms/ui": "^3.93.0",
     "@serwist/next": "^9.5.13",
     "graphql": "^16.15.0",
+    "lucide-react": "^1.72.0",
     "next": "^16.4.6",
     "next-intl": "^4.15.0",
     "payload": "^3.93.0",

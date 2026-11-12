@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminsOnly, anyone } from '../access/roles'
+import { revalidateHooks } from '../hooks/revalidate'
 import { buildSearchText, slugify } from '../lib/text'
 
 /** Towns and localities, with spelling aliases (Tarapur / Taraapur / তারাপুর). */
@@ -45,6 +46,8 @@ export const Localities: CollectionConfig = {
         return data
       },
     ],
+    // Provider search text includes locality names, so listings are cleared too.
+    ...revalidateHooks('localities', 'providers'),
   },
 }
 
@@ -76,5 +79,6 @@ export const Categories: CollectionConfig = {
         return data
       },
     ],
+    ...revalidateHooks('categories', 'providers'),
   },
 }

@@ -1,153 +1,181 @@
+import { ArrowRight, Phone, Siren } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { getLocale, getTranslations } from 'next-intl/server'
 
-import { LanguagePicker, LocalitySelect } from '@/components/client'
-import { VERTICAL_ICON } from '@/components/ui'
+import { LanguagePicker } from '@/components/client'
+import { CategoryIcon, VERTICAL_ICONS } from '@/components/icons'
+import { Container, ProviderCard } from '@/components/ui'
 import { LOCALE_COOKIE } from '@/i18n/request'
-import { getContentLocale, getLocalities, getPayloadClient, getSelectedLocality } from '@/lib/server'
+import { getActiveVerticals, getCategoriesCached, getFeaturedProvidersCached, getNewsListCached } from '@/lib/cache'
+import { getContentLocale, getLocalities, getSelectedLocality, getSiteSettings } from '@/lib/server'
 
-export const dynamic = 'force-dynamic'
-
-const LAUNCH_VERTICALS = ['services', 'health', 'business'] as const
-const LATER_VERTICALS = ['market', 'education', 'fitness', 'travel'] as const
+const VERTICAL_ORDER = ['services', 'health', 'business', 'market', 'education', 'fitness', 'travel'] as const
 
 export default async function Home() {
-  const locale = await getLocale()
+  const [locale, contentLocale, t] = await Promise.all([getLocale(), getContentLocale(), getTranslations()])
   const hasChosenLanguage = Boolean((await cookies()).get(LOCALE_COOKIE))
-  if (!hasChosenLanguage) return <Welcome locale={locale} />
-
-  const t = await getTranslations()
-  const payload = await getPayloadClient()
-  const contentLocale = await getContentLocale()
-  const [localities, selected] = await Promise.all([getLocalities(), getSelectedLocality()])
-  const [services, news, laterCounts] = await Promise.all([
-    payload.find({ collection: 'categories', where: { and: [{ vertical: { equals: 'services' } }, { active: { equals: true } }] }, sort: 'sortOrder', limit: 8, depth: 0, locale: contentLocale }),
-    payload.find({ collection: 'news', where: { _status: { equals: 'published' } }, sort: '-publishedAt', limit: 3, depth: 0, locale: contentLocale }),
-    payload.find({ collection: 'categories', where: { and: [{ vertical: { in: [...LATER_VERTICALS] } }, { active: { equals: true } }] }, limit: 0, depth: 0 }),
+  const [localities, selected, categories, activeVerticals, featured, news, settings] = await Promise.all([
+    getLocalities(),
+    getSelectedLocality(),
+    getCategoriesCached(contentLocale),
+    getActiveVerticals(),
+    getFeaturedProvidersCached(contentLocale, 6),
+    getNewsListCached(contentLocale, 3),
+    getSiteSettings().catch(() => null),
   ])
-  const verticals = [...LAUNCH_VERTICALS, ...(laterCounts.totalDocs ? LATER_VERTICALS : [])]
+  const verticals = VERTICAL_ORDER.filter((v) => activeVerticals.includes(v))
+  const serviceCats = categories.filter((c) => c.vertical === 'services')
+  const emergency = (settings?.emergencyContacts ?? []).slice(0, 3)
+  const dateFmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
 
   return (
-    <div className="grid gap-5 px-4 pt-4">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-2xl font-bold tracking-tight text-brand-navy">Neeze</p>
-          <p className="text-xs text-muted">{t('app.tagline')}</p>
-        </div>
-        <div className="w-44">
-          <LocalitySelect localities={localities.map((l) => ({ id: l.id, name: l.name }))} current={selected?.id} label={t('home.yourArea')} allLabel={t('home.allSilchar')} />
-        </div>
-      </header>
-
-      <form action="/explore" role="search" className="flex gap-2">
-        <label className="sr-only" htmlFor="q">
-          {t('home.search')}
-        </label>
-        <input id="q" name="q" type="search" enterKeyHint="search" placeholder={t('home.searchPlaceholder')} className="input flex-1" />
-        <button className="btn-primary" type="submit">
-          {t('home.search')}
-        </button>
-      </form>
-
-      <section aria-labelledby="browse">
-        <h2 id="browse" className="sr-only">
-          {t('home.categories')}
-        </h2>
-        <ul className="grid grid-cols-4 gap-2">
-          {verticals.map((v) => (
-            <li key={v}>
-              <Link href={`/explore?vertical=${v}`} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border border-line bg-white text-center text-xs font-medium">
-                <span aria-hidden className="text-2xl">
-                  {VERTICAL_ICON[v]}
-                </span>
-                {t(`verticals.${v}`)}
-              </Link>
-            </li>
-          ))}
-          <li>
-            <Link href="/emergency" className="flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border border-red-200 bg-red-50 text-center text-xs font-medium text-red-900">
-              <span aria-hidden className="text-2xl">
-                🚑
-              </span>
-              {t('home.emergency')}
-            </Link>
-          </li>
-        </ul>
+    <>
+      {/* Hero */}
+      <section className="relative isolate overflow-hidden bg-brand-navy">
+        <Image src="/images/silchar-hero.webp" alt="" fill priority sizes="100vw" className="-z-10 object-cover opacity-45" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-brand-navy via-brand-navy/85 to-brand-navy/30" />
+        <Container className="py-10 md:py-20">
+          <div className="max-w-2xl text-white">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight md:text-5xl">{t('hero.title')}</h1>
+            <p className="mt-3 text-base text-white/85 md:text-lg">{t('hero.subtitle')}</p>
+            <form action="/explore" role="search" className="mt-6 grid gap-2 rounded-2xl bg-white p-2 shadow-lg sm:grid-cols-[1fr_auto_auto]">
+              <label htmlFor="q" className="sr-only">
+                {t('home.search')}
+              </label>
+              <input id="q" name="q" type="search" enterKeyHint="search" placeholder={t('home.searchPlaceholder')} className="h-12 rounded-xl px-3 text-base text-ink outline-none placeholder:text-muted focus-visible:ring-2 focus-visible:ring-brand-blue" />
+              <label htmlFor="locality" className="sr-only">
+                {t('home.yourArea')}
+              </label>
+              <select id="locality" name="locality" defaultValue={selected?.id ?? 'all'} className="h-12 rounded-xl border border-line bg-surface px-3 text-sm text-ink">
+                <option value="all">{t('hero.areaAll')}</option>
+                {localities.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className="btn-primary h-12 px-6">
+                {t('hero.searchButton')}
+              </button>
+            </form>
+            {!hasChosenLanguage && (
+              <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-white/85">
+                <span>{t('welcome.chooseLanguage')} · Choose your language</span>
+                <LanguagePicker current={locale} compact />
+              </div>
+            )}
+          </div>
+        </Container>
       </section>
 
-      <section aria-labelledby="svc" className="card bg-brand-navy text-white">
-        <div className="flex items-end justify-between gap-2">
-          <div>
-            <h2 id="svc" className="text-lg font-semibold">
-              {t('home.servicesTitle')}
-            </h2>
-            <p className="text-sm text-white/80">{t('home.servicesBody')}</p>
-          </div>
-          <Link href="/explore?vertical=services" className="shrink-0 text-sm underline">
-            {t('home.seeAll')}
-          </Link>
+      {/* Emergency strip */}
+      {emergency.length > 0 && (
+        <div className="border-b border-red-100 bg-red-50">
+          <Container className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 text-sm">
+            <span className="flex items-center gap-1.5 font-semibold text-red-900">
+              <Siren className="size-4" aria-hidden /> {t('home.emergencyStrip')}
+            </span>
+            {emergency.map((c) => (
+              <a key={c.id} href={`tel:${c.phone}`} className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 font-semibold text-red-800 ring-1 ring-red-200 hover:bg-red-100">
+                <Phone className="size-3.5" aria-hidden /> {c.phone} <span className="font-normal text-red-900/70">· {c.label}</span>
+              </a>
+            ))}
+            <Link href="/emergency" className="ml-auto font-medium text-red-900 underline-offset-2 hover:underline">
+              {t('home.allEmergency')}
+            </Link>
+          </Container>
         </div>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {services.docs.map((c) => (
-            <li key={c.id}>
-              <Link href={`/explore?category=${c.slug}`} className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-sm">
-                <span aria-hidden>{c.icon}</span> {c.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      )}
 
-      {news.docs.length > 0 && (
-        <section aria-labelledby="news">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 id="news" className="font-semibold">
-              {t('home.latestNews')}
-            </h2>
-            <Link href="/news" className="text-sm text-brand-blue">
-              {t('home.seeAll')}
+      {/* Categories */}
+      <Container className="pt-10 md:pt-14">
+        <h2 className="text-xl font-bold tracking-tight md:text-2xl">{t('home.browseTitle')}</h2>
+        <ul className={`mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 ${verticals.length > 3 ? 'lg:grid-cols-4' : ''}`}>
+          {verticals.map((v) => {
+            const Icon = VERTICAL_ICONS[v]
+            return (
+              <li key={v}>
+                <Link href={`/explore?vertical=${v}`} className="flex h-full items-start gap-3 rounded-2xl border border-line bg-white p-4 transition hover:border-brand-blue/40 hover:shadow-sm">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-teal/10 text-brand-teal">
+                    <Icon className="size-5" aria-hidden strokeWidth={1.75} />
+                  </span>
+                  <span>
+                    <span className="block font-semibold text-ink">{t(`verticals.${v}`)}</span>
+                    <span className="mt-0.5 block text-sm text-muted">{t(`verticalsDesc.${v}`)}</span>
+                  </span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </Container>
+
+      {/* Neeze Services */}
+      <Container className="pt-10 md:pt-14">
+        <div className="rounded-3xl bg-white p-5 ring-1 ring-line md:p-8">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight md:text-2xl">{t('home.servicesTitle')}</h2>
+              <p className="mt-1 text-muted">{t('home.servicesBody')}</p>
+            </div>
+            <Link href="/explore?vertical=services" className="inline-flex items-center gap-1 font-semibold text-brand-blue">
+              {t('home.viewAll')} <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>
-          <ul className="grid gap-2">
-            {news.docs.map((n) => (
-              <li key={n.id}>
-                <Link href={`/news/${n.slug}`} className="card block">
-                  <p className="font-medium">{n.title}</p>
-                  {n.publishedAt && <p className="text-xs text-muted">{new Date(n.publishedAt).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })}</p>}
+          <ul className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {serviceCats.map((c) => (
+              <li key={c.id}>
+                <Link href={`/explore?category=${c.slug}`} className="flex items-center gap-2.5 rounded-xl border border-line px-3 py-3 text-sm font-medium text-ink transition hover:border-brand-blue/40 hover:bg-surface">
+                  <CategoryIcon slug={c.slug} vertical={c.vertical} className="size-5 shrink-0 text-brand-navy" />
+                  <span className="min-w-0">{c.name}</span>
                 </Link>
               </li>
             ))}
           </ul>
-        </section>
-      )}
-    </div>
-  )
-}
+        </div>
+      </Container>
 
-async function Welcome({ locale }: { locale: string }) {
-  const t = await getTranslations('welcome')
-  return (
-    <div className="grid min-h-dvh grid-rows-[auto_1fr]">
-      <div className="relative h-72 overflow-hidden">
-        <Image src="/images/silchar-hero.webp" alt="Silchar from above" fill priority sizes="(max-width: 640px) 100vw, 640px" className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/90 via-brand-navy/30 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4 text-white">
-          <p className="text-3xl font-bold">Neeze</p>
-          <p className="text-sm text-white/90">Everything local, connected · সব কিছু স্থানীয়, এক জায়গায়</p>
-        </div>
-      </div>
-      <div className="grid content-start gap-5 p-5">
-        <div>
-          <h1 className="text-xl font-semibold">{t('title')}</h1>
-          <p className="mt-1 text-muted">{t('body')}</p>
-        </div>
-        <div>
-          <p className="mb-2 text-sm font-medium">{t('chooseLanguage')} · Choose your language</p>
-          <LanguagePicker current={locale} />
-        </div>
-      </div>
-    </div>
+      {/* Featured providers */}
+      {featured.length > 0 && (
+        <Container className="pt-10 md:pt-14">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">{t('home.featured')}</h2>
+            <Link href="/explore" className="inline-flex items-center gap-1 font-semibold text-brand-blue">
+              {t('home.viewAll')} <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </div>
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((p) => (
+              <ProviderCard key={p.id} p={p} locale={locale} />
+            ))}
+          </ul>
+        </Container>
+      )}
+
+      {/* News */}
+      {news.length > 0 && (
+        <Container className="pt-10 md:pt-14">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">{t('home.latestNews')}</h2>
+            <Link href="/news" className="inline-flex items-center gap-1 font-semibold text-brand-blue">
+              {t('home.viewAll')} <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </div>
+          <ul className="mt-4 grid gap-4 md:grid-cols-3">
+            {news.map((n) => (
+              <li key={n.id}>
+                <Link href={`/news/${n.slug}`} className="block h-full rounded-2xl border border-line bg-white p-4 transition hover:border-brand-blue/40 hover:shadow-sm">
+                  <p className="font-semibold text-ink">{n.title}</p>
+                  {n.summary && <p className="mt-1 line-clamp-2 text-sm text-muted">{n.summary}</p>}
+                  {n.publishedAt && <p className="mt-2 text-xs text-muted">{dateFmt(n.publishedAt)}</p>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      )}
+    </>
   )
 }

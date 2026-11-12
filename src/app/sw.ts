@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from 'serwist'
-import { CacheFirst, ExpirationPlugin, NetworkFirst, NetworkOnly, Serwist, StaleWhileRevalidate } from 'serwist'
+import { CacheFirst, CacheableResponsePlugin, ExpirationPlugin, NetworkFirst, NetworkOnly, Serwist, StaleWhileRevalidate } from 'serwist'
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -36,7 +36,8 @@ const runtimeCaching: RuntimeCaching[] = [
     matcher: ({ request }) => request.destination === 'image',
     handler: new CacheFirst({
       cacheName: 'images',
-      plugins: [new ExpirationPlugin({ maxEntries: 300, maxAgeSeconds: 30 * DAY })],
+      // Photos from R2 are cross-origin; cap entries because opaque responses use a lot of quota.
+      plugins: [new CacheableResponsePlugin({ statuses: [0, 200] }), new ExpirationPlugin({ maxEntries: 150, maxAgeSeconds: 30 * DAY, purgeOnQuotaError: true })],
     }),
   },
   {

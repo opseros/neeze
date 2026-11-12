@@ -1,12 +1,29 @@
 {
-  "app": { "tagline": "Everything local, connected.", "skip": "Skip to content" },
+  "app": {
+    "tagline": "Everything local, connected.",
+    "skip": "Skip to content"
+  },
   "welcome": {
     "title": "Welcome to Neeze",
     "body": "Find trusted local services, doctors and businesses in Silchar, and send them a request in a few taps.",
     "chooseLanguage": "Choose your language",
     "continue": "Continue"
   },
-  "nav": { "home": "Home", "explore": "Explore", "news": "News", "saved": "Saved", "me": "Me" },
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "news": "News",
+    "saved": "Saved",
+    "me": "Me",
+    "services": "Services",
+    "health": "Health",
+    "business": "Businesses",
+    "emergency": "Emergency",
+    "signIn": "Sign in",
+    "account": "My account",
+    "menu": "Menu",
+    "language": "Language"
+  },
   "home": {
     "searchPlaceholder": "Electrician, doctor, AC repair…",
     "search": "Search",
@@ -18,7 +35,13 @@
     "servicesBody": "Electricians, plumbers, mechanics and more, near you.",
     "seeAll": "See all",
     "latestNews": "Latest local news",
-    "emergency": "Emergency numbers"
+    "emergency": "Emergency numbers",
+    "browseTitle": "Browse by category",
+    "featured": "Recently confirmed providers",
+    "servicesCta": "Find a professional",
+    "emergencyStrip": "In an emergency, call",
+    "allEmergency": "All emergency numbers",
+    "viewAll": "View all"
   },
   "verticals": {
     "services": "Services",
@@ -38,7 +61,10 @@
     "filterCategory": "Category",
     "any": "Any",
     "apply": "Apply",
-    "serves": "Serves {area}"
+    "serves": "Serves {area}",
+    "filters": "Filters",
+    "clear": "Clear filters",
+    "showing": "Showing {from}–{to} of {total}"
   },
   "provider": {
     "call": "Call",
@@ -63,7 +89,10 @@
       "identity": "Identity checked",
       "credential": "Licence checked"
     },
-    "verificationHelp": "This label shows only what Neeze has checked. It is not a guarantee of work quality."
+    "verificationHelp": "This label shows only what Neeze has checked. It is not a guarantee of work quality.",
+    "contactTitle": "Contact",
+    "about": "About",
+    "breadcrumbHome": "Home"
   },
   "request": {
     "titleService": "Request a service",
@@ -77,7 +106,12 @@
     "addressHint": "Shared only with this provider",
     "date": "Preferred date (optional)",
     "window": "Preferred time",
-    "windows": { "any": "Any time", "morning": "Morning", "afternoon": "Afternoon", "evening": "Evening" },
+    "windows": {
+      "any": "Any time",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
     "urgency": "How urgent?",
     "urgent": "Urgent",
     "normal": "Normal",
@@ -143,7 +177,12 @@
     "body": "These numbers stay available without internet once you have opened this page.",
     "verifyNote": "Check numbers with official sources."
   },
-  "news": { "title": "Local news", "empty": "No news yet.", "corrections": "Corrections", "updated": "Updated {date}" },
+  "news": {
+    "title": "Local news",
+    "empty": "No news yet.",
+    "corrections": "Corrections",
+    "updated": "Updated {date}"
+  },
   "offline": {
     "title": "You are offline",
     "body": "This page is not saved on your phone yet. Your saved providers and emergency numbers still work.",
@@ -160,5 +199,28 @@
     "refresh": "Refresh",
     "offlineBar": "Offline: showing saved information",
     "syncing": "Sending your saved requests…"
+  },
+  "hero": {
+    "title": "Find trusted local help in Silchar",
+    "subtitle": "Electricians, plumbers, doctors, clinics and local businesses, with phone numbers that are checked.",
+    "areaAll": "All areas",
+    "searchButton": "Search"
+  },
+  "verticalsDesc": {
+    "services": "Electricians, plumbers, repairs",
+    "health": "Doctors, clinics, diagnostics",
+    "business": "Local shops and businesses",
+    "market": "Grocery, pharmacy, hardware",
+    "education": "Schools and institutes",
+    "fitness": "Gyms and trainers",
+    "travel": "Buses and hotels"
+  },
+  "footer": {
+    "about": "Neeze helps people in Silchar find and contact trusted local services, doctors and businesses.",
+    "explore": "Explore",
+    "help": "Help",
+    "listBusiness": "List your business",
+    "listBusinessBody": "Free during launch. Call us to get listed.",
+    "rights": "Neeze · Silchar, Assam"
   }
 }

@@ -2,11 +2,9 @@ import { getLocale, getTranslations } from 'next-intl/server'
 
 import { LanguagePicker, OutboxList } from '@/components/client'
 import { CancelRequestButton, SignInForm, SignOutButton } from '@/components/forms'
-import { PageHeader } from '@/components/ui'
+import { Container, PageTitle } from '@/components/ui'
 import type { Provider } from '@/payload-types'
 import { getCurrentUser, getPayloadClient } from '@/lib/server'
-
-export const dynamic = 'force-dynamic'
 
 const CANCELLABLE = new Set(['submitted', 'assigned', 'contacted', 'quoted', 'accepted'])
 const STATUS_STYLE: Record<string, string> = {
@@ -29,17 +27,13 @@ export default async function MePage() {
   if (!user) {
     return (
       <>
-        <PageHeader title={t('me.title')} />
-        <div className="grid gap-4 px-4 pt-4">
-          <div className="card">
+        <PageTitle title={t('me.title')} />
+        <Container className="grid max-w-xl gap-4 py-6 md:py-10">
+          <div className="card p-5 md:p-6">
             <SignInForm />
           </div>
           <OutboxList />
-          <section className="card grid gap-2">
-            <h2 className="font-semibold">{t('me.language')}</h2>
-            <LanguagePicker current={locale} compact />
-          </section>
-        </div>
+        </Container>
       </>
     )
   }
@@ -59,8 +53,9 @@ export default async function MePage() {
 
   return (
     <>
-      <PageHeader title={t('me.title')} />
-      <div className="grid gap-4 px-4 pt-4">
+      <PageTitle title={t('me.title')} />
+      <Container className="grid gap-6 py-6 md:grid-cols-[280px_1fr] md:py-8 lg:gap-10">
+        <aside className="grid content-start gap-4 md:sticky md:top-24 md:self-start">
         <section className="card flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-semibold">{user.name ?? user.phone}</p>
@@ -68,14 +63,19 @@ export default async function MePage() {
           </div>
           <SignOutButton />
         </section>
+        <section className="card grid gap-2">
+          <h2 className="font-semibold">{t('me.language')}</h2>
+          <LanguagePicker current={locale} compact />
+        </section>
+        </aside>
 
-        <section className="grid gap-2">
-          <h2 className="font-semibold">{t('me.requests')}</h2>
+        <section className="grid content-start gap-3">
+          <h2 className="text-lg font-semibold">{t('me.requests')}</h2>
           <OutboxList />
           {docs.length === 0 ? (
             <p className="card text-muted">{t('me.noRequests')}</p>
           ) : (
-            <ul className="grid gap-2">
+            <ul className="grid gap-3 lg:grid-cols-2">
               {docs.map((r) => {
                 const p = typeof r.provider === 'object' ? (r.provider as Provider) : null
                 return (
@@ -100,12 +100,7 @@ export default async function MePage() {
             </ul>
           )}
         </section>
-
-        <section className="card grid gap-2">
-          <h2 className="font-semibold">{t('me.language')}</h2>
-          <LanguagePicker current={locale} compact />
-        </section>
-      </div>
+      </Container>
     </>
   )
 }

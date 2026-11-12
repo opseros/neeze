@@ -2,16 +2,13 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import { notFound } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 
-import { PageHeader } from '@/components/ui'
+import { Container } from '@/components/ui'
 import type { News } from '@/payload-types'
-import { getContentLocale, getPayloadClient } from '@/lib/server'
-
-export const dynamic = 'force-dynamic'
+import { getNewsBySlugCached } from '@/lib/cache'
+import { getContentLocale } from '@/lib/server'
 
 async function load(slug: string): Promise<News | null> {
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({ collection: 'news', where: { slug: { equals: slug } }, limit: 1, depth: 1, locale: await getContentLocale(), overrideAccess: false })
-  return (docs[0] as News) ?? null
+  return getNewsBySlugCached(slug.slice(0, 200), await getContentLocale())
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -27,14 +24,16 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
   const fmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
   return (
     <>
-      <PageHeader title={t('title')} back="/news" />
-      <article className="grid gap-3 px-4 pt-4">
-        <h2 className="text-2xl font-bold leading-snug">{n.title}</h2>
+      <Container className="max-w-3xl py-8 md:py-12">
+      <article className="grid gap-4">
+        <a href="/news" className="text-sm font-medium text-brand-blue">← {t('title')}</a>
+        <h1 className="text-2xl font-bold leading-tight tracking-tight md:text-4xl">{n.title}</h1>
+        {n.summary && <p className="text-lg text-muted">{n.summary}</p>}
         <p className="text-sm text-muted">
           {n.publishedAt && fmt(n.publishedAt)}
           {n.updatedAt && n.publishedAt && n.updatedAt > n.publishedAt && ` · ${t('updated', { date: fmt(n.updatedAt) })}`}
         </p>
-        {n.body && <RichText data={n.body} className="prose max-w-none" />}
+        {n.body && <RichText data={n.body} className="article-body" />}
         {n.sources && n.sources.length > 0 && (
           <ul className="text-sm text-muted">
             {n.sources.map((s) => (
@@ -55,6 +54,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
           </section>
         )}
       </article>
+      </Container>
     </>
   )
 }

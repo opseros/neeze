@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 
-import { PageHeader } from '@/components/ui'
-import { getContentLocale, getPayloadClient } from '@/lib/server'
-
-export const dynamic = 'force-dynamic'
+import { Container, PageTitle } from '@/components/ui'
+import type { Media } from '@/payload-types'
+import { getNewsListCached } from '@/lib/cache'
+import { getContentLocale } from '@/lib/server'
 
 export async function generateMetadata() {
   const t = await getTranslations('news')
@@ -12,23 +12,38 @@ export async function generateMetadata() {
 }
 
 export default async function NewsList() {
-  const t = await getTranslations('news')
-  const locale = await getLocale()
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({ collection: 'news', where: { _status: { equals: 'published' } }, sort: '-publishedAt', limit: 30, depth: 0, locale: await getContentLocale(), overrideAccess: false })
+  const [t, locale, contentLocale] = await Promise.all([getTranslations('news'), getLocale(), getContentLocale()])
+  const docs = await getNewsListCached(contentLocale, 30)
+  const fmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
   return (
     <>
-      <PageHeader title={t('title')} />
-      <div className="grid gap-2 px-4 pt-4">
-        {docs.length === 0 && <p className="card text-muted">{t('empty')}</p>}
-        {docs.map((n) => (
-          <Link key={n.id} href={`/news/${n.slug}`} className="card block">
-            <p className="font-semibold">{n.title}</p>
-            {n.summary && <p className="mt-1 line-clamp-2 text-sm text-muted">{n.summary}</p>}
-            {n.publishedAt && <p className="mt-1 text-xs text-muted">{new Date(n.publishedAt).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })}</p>}
-          </Link>
-        ))}
-      </div>
+      <PageTitle title={t('title')} />
+      <Container className="py-6 md:py-8">
+        {docs.length === 0 ? (
+          <p className="card text-muted">{t('empty')}</p>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {docs.map((n) => {
+              const img = typeof n.image === 'object' ? (n.image as Media) : null
+              return (
+                <li key={n.id}>
+                  <Link href={`/news/${n.slug}`} className="block h-full overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand-blue/40 hover:shadow-sm">
+                    {img && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img.sizes?.card?.url ?? img.url ?? ''} alt={img.alt} loading="lazy" className="aspect-[16/9] w-full object-cover" />
+                    )}
+                    <div className="p-4">
+                      <p className="font-semibold leading-snug">{n.title}</p>
+                      {n.summary && <p className="mt-1 line-clamp-3 text-sm text-muted">{n.summary}</p>}
+                      {n.publishedAt && <p className="mt-2 text-xs text-muted">{fmt(n.publishedAt)}</p>}
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </Container>
     </>
   )
 }

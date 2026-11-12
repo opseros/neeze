@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleCheck, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -189,13 +190,11 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
 
   if (state === 'sent' || state === 'queued') {
     return (
-      <div className="card grid gap-3 text-center" role="status">
-        <div className="text-4xl" aria-hidden>
-          {state === 'sent' ? '✅' : '📥'}
-        </div>
+      <div className="grid justify-items-center gap-3 py-6 text-center" role="status">
+        {state === 'sent' ? <CircleCheck className="size-12 text-brand-teal" aria-hidden /> : <Inbox className="size-12 text-brand-blue" aria-hidden />}
         <p className="text-lg font-semibold">{state === 'sent' ? t('sent') : t('queued')}</p>
         {state === 'sent' && <p className="text-muted">{t('sentBody', { code: code ?? '', name: provider.name })}</p>}
-        <a href="/me" className="btn-primary">
+        <a href="/me" className="btn-primary w-full max-w-xs">
           {t('track')}
         </a>
       </div>
@@ -204,7 +203,7 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
 
   if (state === 'signin' || (!user && state !== 'form')) {
     return (
-      <div className="card">
+      <div className="mx-auto max-w-md">
         <SignInForm
           defaultName={form.contactName}
           onSignedIn={(u) => {

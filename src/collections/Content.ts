@@ -1,6 +1,7 @@
 import type { CollectionConfig, GlobalConfig } from 'payload'
 
 import { adminsOnly, anyone, hasRole, isAdmin, isStaff, signedIn } from '../access/roles'
+import { revalidate, revalidateHooks } from '../hooks/revalidate'
 import { slugify } from '../lib/text'
 
 const editors = ({ req }: { req: { user?: unknown } }) =>
@@ -26,6 +27,8 @@ export const Media: CollectionConfig = {
     ],
   },
   fields: [{ name: 'alt', type: 'text', required: true, localized: true }],
+  // Photos appear on provider pages and news.
+  hooks: revalidateHooks('providers', 'news'),
 }
 
 /**
@@ -70,6 +73,7 @@ export const News: CollectionConfig = {
         return data
       },
     ],
+    ...revalidateHooks('news'),
   },
 }
 
@@ -78,6 +82,14 @@ export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
   admin: { group: 'Operations' },
   access: { read: anyone, update: adminsOnly },
+  hooks: {
+    afterChange: [
+      ({ doc }) => {
+        revalidate('settings')
+        return doc
+      },
+    ],
+  },
   fields: [
     {
       name: 'alertBanner',
