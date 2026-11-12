@@ -3,7 +3,7 @@ import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
 import { getPayload, type Where } from 'payload'
 
-import type { Category, Locality, News, Provider, Review, SiteSetting } from '@/payload-types'
+import type { Category, Comment, Locality, Media, News, Post, Provider, Review, SiteSetting } from '@/payload-types'
 import { normalizeForSearch } from './text'
 
 /**
@@ -18,6 +18,7 @@ export const TAGS = {
   news: 'news',
   settings: 'settings',
   reviews: 'reviews',
+  community: 'community',
 } as const
 
 import type { Locale } from '@/i18n/locales'
@@ -208,4 +209,84 @@ export const getProviderReviewsCached = unstable_cache(
   },
   ['provider-reviews-v1'],
   { tags: [TAGS.reviews], revalidate: HOUR },
+)
+
+/* ---------- Community ---------- */
+
+/** What pages need from a post. `authorId` never leaves the server: it is used to filter blocks and spot "mine". */
+export type PostView = {
+  id: number
+  authorId: number | null
+  authorName: string
+  body: string
+  topic: string
+  localityId: number | null
+  localityName: string | null
+  image: { url: string; card: string } | null
+  commentCount: number
+  helpfulCount: number
+  helpfulBy: number[]
+  status: string
+  commentsLocked: boolean
+  createdAt: string
+  editedAt: string | null
+}
+export type CommentView = { id: number; authorId: number | null; authorName: string; body: string; status: string; createdAt: string }
+
+const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: number }).id : ((v as number) ?? null))
+
+export function toPostView(p: Post): PostView {
+  const img = typeof p.image === 'object' && p.image ? (p.image as Media) : null
+  const loc = typeof p.locality === 'object' && p.locality ? (p.locality as Locality) : null
+  return {
+    id: p.id,
+    authorId: idOf(p.author),
+    authorName: p.authorName ?? '',
+    body: p.body,
+    topic: p.topic,
+    localityId: idOf(p.locality),
+    localityName: loc?.name ?? null,
+    image: img?.url ? { url: img.url, card: img.sizes?.card?.url ?? img.url } : null,
+    commentCount: p.commentCount ?? 0,
+    helpfulCount: p.helpfulCount ?? 0,
+    helpfulBy: ((p.helpfulBy ?? []) as unknown[]).map(idOf).filter(Boolean) as number[],
+    status: p.status ?? 'published',
+    commentsLocked: Boolean(p.commentsLocked),
+    createdAt: p.createdAt,
+    editedAt: p.editedAt ?? null,
+  }
+}
+
+export const toCommentView = (c: Comment): CommentView => ({ id: c.id, authorId: idOf(c.author), authorName: c.authorName ?? '', body: c.body, status: c.status ?? 'published', createdAt: c.createdAt })
+
+export type FeedInput = { topic?: string; locality?: number; page?: number }
+
+export const getCommunityFeedCached = unstable_cache(
+  async (input: FeedInput, locale: Locale): Promise<{ docs: PostView[]; totalPages: number; page: number }> => {
+    const and: Where[] = [{ status: { equals: 'published' } }]
+    if (input.topic) and.push({ topic: { equals: input.topic } })
+    if (input.locality) and.push({ locality: { equals: input.locality } })
+    const r = await (await payload()).find({ collection: 'posts', where: { and }, sort: '-createdAt', limit: 20, page: input.page ?? 1, depth: 1, locale })
+    return { docs: (r.docs as Post[]).map(toPostView), totalPages: r.totalPages, page: r.page ?? 1 }
+  },
+  ['community-feed-v1'],
+  { tags: [TAGS.community, TAGS.localities], revalidate: HOUR },
+)
+
+export const getPostCached = unstable_cache(
+  async (id: number, locale: Locale): Promise<PostView | null> => {
+    const p = await (await payload()).findByID({ collection: 'posts', id, depth: 1, locale }).catch(() => null)
+    return p && p.status === 'published' ? toPostView(p as Post) : null
+  },
+  ['community-post-v1'],
+  { tags: [TAGS.community], revalidate: HOUR },
+)
+
+export const getCommentsCached = unstable_cache(
+  async (postId: number): Promise<CommentView[]> => {
+    const { docs } = await (await payload()).find({ collection: 'comments', where: { and: [{ post: { equals: postId } }, { status: { equals: 'published' } }] }, sort: 'createdAt', limit: 300, depth: 0 })
+    return (docs as Comment[]).map(toCommentView)
+  },
+  ['community-comments-v1'],
+  { tags: [TAGS.community], revalidate: HOUR },
 )

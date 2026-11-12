@@ -76,6 +76,8 @@ NODE_ENV=production SEED_ADMIN_EMAIL=you@opseros.com SEED_ADMIN_PASSWORD='<stron
 
 5. Open `https://neeze.opseros.com/admin`, sign in and change the password.
 
+   If that email already signed in on the site (Google, Microsoft or email code), the seed keeps the account and its history, adds the super-admin role and sets the `/admin` password. Running it again with a new password resets the admin password.
+
 ## Sign-in: Google, Microsoft and email
 
 People sign in with **Google**, **Microsoft** or **an emailed 6-digit code**. Every account must add a **mobile number** before sending a request. The number is unique, so one number can't be on two accounts. The same verified email always lands in the same account, whichever way the person signs in.

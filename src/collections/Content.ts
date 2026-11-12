@@ -26,14 +26,24 @@ export const Media: CollectionConfig = {
       { name: 'card', width: 640, formatOptions: { format: 'webp', options: { quality: 75 } } },
     ],
   },
-  fields: [{ name: 'alt', type: 'text', required: true, localized: true }],
-  // Photos appear on provider pages and news.
-  hooks: revalidateHooks('providers', 'news'),
+  fields: [
+    { name: 'alt', type: 'text', localized: true, admin: { description: 'Describe the photo for people who cannot see it.' } },
+    { name: 'uploadedBy', type: 'relationship', relationTo: 'users', index: true, admin: { readOnly: true, position: 'sidebar' }, access: { read: ({ req }) => isStaff(req.user) } },
+  ],
+  hooks: {
+    ...revalidateHooks('providers', 'news', 'community'),
+    beforeChange: [
+      ({ data, req, operation }) => {
+        if (operation === 'create') return { ...data, uploadedBy: req.user?.id, alt: data.alt || 'Photo' }
+        return data
+      },
+    ],
+  },
 }
 
 /**
- * Editor-only news for P0: published by Neeze's own editors, with a visible correction log.
- * Community posting is deferred to P1.
+ * Editor-only news: published by Neeze's own editors, with a visible correction log.
+ * Readers send corrections through the report queue (content-reports).
  */
 export const News: CollectionConfig = {
   slug: 'news',
@@ -112,5 +122,22 @@ export const SiteSettings: GlobalConfig = {
     },
     { name: 'supportPhone', type: 'text' },
     { name: 'grievanceEmail', type: 'email' },
+    {
+      name: 'community',
+      type: 'group',
+      fields: [
+        {
+          name: 'postingMode',
+          type: 'select',
+          defaultValue: 'first-post',
+          options: [
+            { label: 'Open: posts go live straight away', value: 'open' },
+            { label: "New members' first post is reviewed, then open", value: 'first-post' },
+            { label: 'Every post is reviewed before it goes live', value: 'all' },
+          ],
+          admin: { description: 'Posts with several links always wait for review. Reported posts hide themselves after 3 reports.' },
+        },
+      ],
+    },
   ],
 }

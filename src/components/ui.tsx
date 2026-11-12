@@ -1,4 +1,4 @@
-import { ArrowLeft, BadgeCheck, Bell, ChevronRight, MapPin, Phone, Star } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Bell, Bookmark, ChevronRight, MapPin, Phone, Search, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
@@ -30,6 +30,7 @@ export async function SiteHeader({ locale, signedIn, providers, unread = 0 }: { 
     { href: '/explore?vertical=services', label: t('nav.services'), match: 'services' },
     { href: '/explore?vertical=health', label: t('nav.health'), match: 'health' },
     { href: '/explore?vertical=business', label: t('nav.business'), match: 'business' },
+    { href: '/community', label: t('nav.community'), match: '/community' },
     { href: '/news', label: t('nav.news'), match: '/news' },
     { href: '/emergency', label: t('nav.emergency'), match: '/emergency' },
   ]
@@ -38,14 +39,14 @@ export async function SiteHeader({ locale, signedIn, providers, unread = 0 }: { 
       <Container className="flex h-16 items-center gap-4">
         <Logo />
         <HeaderNav links={links} />
-        <form action="/explore" role="search" className="ml-auto hidden max-w-xs flex-1 lg:block">
-          <label htmlFor="header-q" className="sr-only">
-            {t('home.search')}
-          </label>
-          <input id="header-q" name="q" type="search" placeholder={t('home.searchPlaceholder')} className="input h-10 py-0 text-sm" />
-        </form>
+        <Link href="/explore" aria-label={t('home.search')} title={t('home.search')} className="ml-auto hidden size-10 place-items-center rounded-lg border border-line text-ink hover:bg-surface lg:grid">
+          <Search className="size-5" aria-hidden />
+        </Link>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <LanguageToggle current={locale} label={t('nav.language')} />
+          <Link href="/saved" aria-label={t('nav.saved')} title={t('nav.saved')} className="grid size-10 place-items-center rounded-lg border border-line text-ink hover:bg-surface">
+            <Bookmark className="size-5" aria-hidden />
+          </Link>
           {signedIn ? (
             <>
               <Link href="/notifications" aria-label={t('nav2.notifications')} className="relative grid size-10 place-items-center rounded-lg border border-line text-ink hover:bg-surface">
@@ -79,11 +80,13 @@ export async function SiteFooter({ supportPhone }: { supportPhone?: string | nul
           <Link href="/explore?vertical=services" className="text-muted hover:text-ink">{t('nav.services')}</Link>
           <Link href="/explore?vertical=health" className="text-muted hover:text-ink">{t('nav.health')}</Link>
           <Link href="/explore?vertical=business" className="text-muted hover:text-ink">{t('nav.business')}</Link>
+          <Link href="/community" className="text-muted hover:text-ink">{t('nav.community')}</Link>
           <Link href="/news" className="text-muted hover:text-ink">{t('nav.news')}</Link>
         </nav>
         <div className="grid content-start gap-2">
           <p className="font-semibold text-ink">{t('footer.help')}</p>
           <Link href="/emergency" className="text-muted hover:text-ink">{t('home.emergency')}</Link>
+          <Link href="/community/rules" className="text-muted hover:text-ink">{t('community.rules')}</Link>
           <Link href="/me" className="text-muted hover:text-ink">{t('me.requests')}</Link>
           <Link href="/provider" className="text-muted hover:text-ink">{t('nav2.dashboard')}</Link>
           <p className="mt-2 font-semibold text-ink">
@@ -111,7 +114,7 @@ export async function SiteFooter({ supportPhone }: { supportPhone?: string | nul
 
 export async function MobileNav() {
   const t = await getTranslations('nav')
-  return <MobileTabBar labels={{ home: t('home'), explore: t('explore'), news: t('news'), saved: t('saved'), me: t('me') }} />
+  return <MobileTabBar labels={{ home: t('home'), explore: t('explore'), community: t('community'), news: t('news'), me: t('me') }} />
 }
 
 /* ---------- Page pieces ---------- */

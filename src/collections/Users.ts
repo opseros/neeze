@@ -5,6 +5,8 @@ import { ROLES, adminFieldOnly, isAdmin, isRoleEscalation, isStaff, selfOrAdmin,
 import { SESSION_COOKIE, readCookie, verifySession } from '../lib/session'
 import { audit } from '../hooks/audit'
 
+const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: number }).id : (v as number))
+
 export const Users: CollectionConfig = {
   slug: 'users',
   admin: {
@@ -97,6 +99,38 @@ export const Users: CollectionConfig = {
       access: { update: adminFieldOnly, create: adminFieldOnly },
     },
     { name: 'suspensionReason', type: 'text', access: { read: adminFieldOnly, update: adminFieldOnly } },
+    {
+      // People this user has blocked in Community: their posts and comments are hidden from this user.
+      name: 'blockedUsers',
+      type: 'relationship',
+      relationTo: 'users',
+      hasMany: true,
+      admin: { readOnly: true },
+      access: { create: () => false, update: adminFieldOnly },
+    },
+  ],
+  endpoints: [
+    {
+      // POST /api/users/block {postId | commentId, unblock?: boolean} or {userId, unblock: true}
+      // Blocks the author without ever telling the blocker who they are (author ids stay private).
+      path: '/block',
+      method: 'post',
+      handler: async (req) => {
+        if (!req.user) return Response.json({ error: 'signin_required' }, { status: 401 })
+        const body = (await req.json?.().catch(() => null)) as { postId?: number; commentId?: number; userId?: number; unblock?: boolean } | null
+        let target: number | undefined
+        if (body?.postId) target = idOf((await req.payload.findByID({ collection: 'posts', id: Number(body.postId), depth: 0, overrideAccess: true }).catch(() => null))?.author)
+        else if (body?.commentId) target = idOf((await req.payload.findByID({ collection: 'comments', id: Number(body.commentId), depth: 0, overrideAccess: true }).catch(() => null))?.author)
+        else if (body?.userId && body.unblock) target = Number(body.userId)
+        if (!target) return Response.json({ error: 'not_found' }, { status: 404 })
+        if (target === req.user.id) return Response.json({ error: 'self' }, { status: 400 })
+        const me = await req.payload.findByID({ collection: 'users', id: req.user.id, depth: 0, overrideAccess: true })
+        const list = ((me.blockedUsers ?? []) as unknown[]).map(idOf)
+        const next = body?.unblock ? list.filter((u) => u !== target) : [...new Set([...list, target])]
+        await req.payload.update({ collection: 'users', id: req.user.id, overrideAccess: true, data: { blockedUsers: next } })
+        return Response.json({ ok: true, blocked: !body?.unblock })
+      },
+    },
   ],
   hooks: {
     afterChange: [

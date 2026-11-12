@@ -22,7 +22,8 @@
     "signIn": "Sign in",
     "account": "My account",
     "menu": "Menu",
-    "language": "Language"
+    "language": "Language",
+    "community": "Community"
   },
   "home": {
     "searchPlaceholder": "Electrician, doctor, AC repair…",
@@ -197,7 +198,8 @@
     },
     "waiting": "Waiting to send",
     "cancel": "Cancel request",
-    "cancelReason": "Plans changed"
+    "cancelReason": "Plans changed",
+    "savedLink": "Saved providers"
   },
   "saved": {
     "title": "Saved",
@@ -373,7 +375,11 @@
       "submitted": "{code} updated",
       "assigned": "{code} updated"
     },
-    "newReview": "{author} gave {provider} {rating} stars"
+    "newReview": "{author} gave {provider} {rating} stars",
+    "newComment": "{author} commented on your post",
+    "postApproved": "Your {target, select, comment {comment} other {post}} is now live",
+    "postRemoved": "A moderator hid your {target, select, comment {comment} other {post}}",
+    "reportOutcome": "{outcome, select, resolved {We acted on your report} other {We checked your report and left the content up}}"
   },
   "home2": {
     "statsProviders": "{count, plural, one {# provider} other {# providers}}",
@@ -421,6 +427,111 @@
       "too_late": "Reviews close 60 days after the job.",
       "not_yours": "Only the customer can review this job.",
       "generic": "Couldn't post. Please try again."
+    }
+  },
+  "community": {
+    "title": "Community",
+    "subtitle": "Ask neighbours, share recommendations and local announcements in Silchar.",
+    "write": "Write a post",
+    "rules": "Community rules",
+    "allTopics": "All",
+    "allAreas": "All areas",
+    "topics": {
+      "question": "Question",
+      "recommendation": "Recommendation",
+      "announcement": "Announcement",
+      "lost-found": "Lost & found",
+      "general": "General"
+    },
+    "empty": "No posts here yet. Be the first to ask or share something.",
+    "pending": "Waiting for review",
+    "pendingNote": "Only you can see this until a moderator approves it, usually within a day.",
+    "hiddenNote": "Hidden from others while a moderator checks it.",
+    "helpful": "Helpful",
+    "helpfulCount": "{count, plural, =0 {Helpful} one {# found this helpful} other {# found this helpful}}",
+    "comments": "{count, plural, =0 {No comments} one {# comment} other {# comments}}",
+    "commentsTitle": "Comments",
+    "commentPlaceholder": "Write a comment",
+    "commentSubmit": "Comment",
+    "signInToJoin": "Sign in to post, comment or mark helpful.",
+    "commentsLocked": "Comments are closed on this post.",
+    "edited": "edited",
+    "block": "Block this person",
+    "blocked": "Blocked. You won't see their posts or comments.",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Delete for good? Tap again to confirm.",
+    "newTitle": "Write a post",
+    "editTitle": "Edit post",
+    "topic": "Topic",
+    "area": "Area (optional)",
+    "body": "Your post",
+    "bodyHint": "Ask a question, recommend someone, or share news from your area. Don't post other people's phone numbers or addresses.",
+    "photo": "Photo (optional)",
+    "addPhoto": "Add a photo",
+    "removePhoto": "Remove photo",
+    "agree": "I follow the <rules>community rules</rules>.",
+    "submit": "Post",
+    "saving": "Posting…",
+    "save": "Save changes",
+    "reviewNoticeFirst": "Your first post is checked by a moderator before others can see it.",
+    "reviewNoticeAll": "Posts are checked by a moderator before others can see them.",
+    "postedPending": "Thanks! Your post will appear once a moderator has checked it.",
+    "charsLeft": "{count} characters left",
+    "fromCommunity": "From the community",
+    "seeAll": "See all",
+    "blockedTitle": "People you've blocked",
+    "unblock": "Unblock",
+    "errors": {
+      "body_required": "Write a little more.",
+      "too_many": "You've reached today's limit. Try again tomorrow.",
+      "restricted": "You can't post or comment right now. Contact support if you think this is a mistake.",
+      "suspended": "This account is suspended.",
+      "phone_required": "Add your mobile number first.",
+      "edit_window_closed": "Posts can only be edited for 24 hours.",
+      "comments_locked": "Comments are closed on this post.",
+      "image": "That photo couldn't be added. Use a JPG, PNG or WebP photo.",
+      "generic": "Couldn't save. Please try again."
+    },
+    "rulesTitle": "Community rules",
+    "rulesIntro": "Neeze Community is for people in Silchar to help each other. Keep it useful and kind.",
+    "rulesList": {
+      "r1": "Be respectful. No abuse, threats, hate, or content that targets any religion, community, caste or language group.",
+      "r2": "Keep it local and useful: questions, recommendations, lost & found, local announcements.",
+      "r3": "Protect privacy. Don't share other people's phone numbers, addresses, photos or health details.",
+      "r4": "No spam, advertising or repeated posts. Businesses can list themselves in the directory instead.",
+      "r5": "Don't spread rumours. Say where information comes from. In an emergency, use official numbers.",
+      "r6": "Nothing illegal, sexual or violent.",
+      "r7": "Report posts that break these rules. Moderators may hide or remove them and restrict accounts. Serious cases may be reported to the authorities."
+    },
+    "rulesContact": "Questions or complaints: use Report on any post, or write to <mail>{email}</mail>.",
+    "rulesContactNoEmail": "Questions or complaints: use Report on any post, or contact Neeze support."
+  },
+  "report": {
+    "button": "Report",
+    "newsButton": "Report / suggest a correction",
+    "providerButton": "Report wrong information",
+    "title": "What's wrong?",
+    "reasons": {
+      "spam": "Spam or advertising",
+      "abuse": "Abusive or hateful",
+      "false-info": "False or misleading",
+      "privacy": "Shares private information",
+      "other": "Something else",
+      "correction": "Suggest a correction",
+      "wrong-info": "Wrong phone, address or details",
+      "closed": "Closed or no longer working",
+      "fraud": "Fraud or scam"
+    },
+    "note": "Details (optional)",
+    "notePlaceholder": "What is wrong? For a correction, tell us the right information.",
+    "send": "Send",
+    "cancel": "Cancel",
+    "thanks": "Thanks. Our team will look at it.",
+    "signIn": "Sign in to report.",
+    "errors": {
+      "too_many": "Too many reports today. Try again tomorrow.",
+      "generic": "Couldn't send. Please try again."
     }
   }
 }

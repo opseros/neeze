@@ -2,6 +2,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import { notFound } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 
+import { ReportButton } from '@/components/community'
 import { Container } from '@/components/ui'
 import type { News } from '@/payload-types'
 import { getNewsBySlugCached } from '@/lib/cache'
@@ -21,6 +22,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
   const n = await load((await params).slug)
   if (!n) notFound()
   const t = await getTranslations('news')
+  const tr = await getTranslations('report')
   const locale = await getLocale()
   const fmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium' })
   return (
@@ -54,6 +56,9 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
             </ul>
           </section>
         )}
+        <div className="border-t border-line pt-4">
+          <ReportButton target="news" id={n.id} label={tr('newsButton')} />
+        </div>
       </article>
       </Container>
     </>

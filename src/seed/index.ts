@@ -112,10 +112,17 @@ async function main() {
   const email = process.env.SEED_ADMIN_EMAIL
   const password = process.env.SEED_ADMIN_PASSWORD
   if (email && password) {
-    const exists = await payload.find({ collection: 'users', where: { email: { equals: email } }, limit: 1 })
-    if (!exists.docs[0]) {
+    const exists = await payload.find({ collection: 'users', where: { email: { equals: email.toLowerCase() } }, limit: 1, depth: 0 })
+    const existing = exists.docs[0]
+    if (!existing) {
       await payload.create({ collection: 'users', data: { email, password, name: 'Neeze Admin', roles: ['super-admin'] } })
       payload.logger.info(`Created super-admin ${email}`)
+    } else {
+      // The address already signed in on the site (Google, Microsoft or email code): keep the account,
+      // its history and its sign-in methods; add super-admin and set the /admin password.
+      const roles = [...new Set([...((existing.roles as string[]) ?? []), 'super-admin'])]
+      await payload.update({ collection: 'users', id: existing.id, data: { roles: roles as never, password, suspended: false }, overrideAccess: true })
+      payload.logger.info(`Existing account ${email} is now super-admin; /admin password set`)
     }
   }
 

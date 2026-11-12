@@ -31,7 +31,7 @@ export default async function NewsList() {
                   <Link href={`/news/${n.slug}`} className="block h-full overflow-hidden rounded-2xl border border-line bg-white transition hover:border-brand-blue/40 hover:shadow-sm">
                     {img && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img.sizes?.card?.url ?? img.url ?? ''} alt={img.alt} loading="lazy" className="aspect-[16/9] w-full object-cover" />
+                      <img src={img.sizes?.card?.url ?? img.url ?? ''} alt={img.alt ?? ""} loading="lazy" className="aspect-[16/9] w-full object-cover" />
                     )}
                     <div className="p-4">
                       <p className="font-semibold leading-snug">{n.title}</p>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Bookmark, ChevronDown, House, Languages, Newspaper, Search, User } from 'lucide-react'
+import { ChevronDown, House, Languages, Newspaper, Search, User, Users } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useTransition } from 'react'
@@ -78,14 +78,14 @@ export function LanguageToggle({ current, label }: { current: string; label: str
   )
 }
 
-export function MobileTabBar({ labels }: { labels: { home: string; explore: string; news: string; saved: string; me: string } }) {
+export function MobileTabBar({ labels }: { labels: { home: string; explore: string; community: string; news: string; me: string } }) {
   const pathname = usePathname()
   const items = [
     { href: '/', icon: House, label: labels.home, active: pathname === '/' },
     { href: '/explore', icon: Search, label: labels.explore, active: pathname.startsWith('/explore') || pathname.startsWith('/p/') },
+    { href: '/community', icon: Users, label: labels.community, active: pathname.startsWith('/community') },
     { href: '/news', icon: Newspaper, label: labels.news, active: pathname.startsWith('/news') },
-    { href: '/saved', icon: Bookmark, label: labels.saved, active: pathname.startsWith('/saved') },
-    { href: '/me', icon: User, label: labels.me, active: pathname.startsWith('/me') },
+    { href: '/me', icon: User, label: labels.me, active: pathname.startsWith('/me') || pathname.startsWith('/saved') },
   ]
   return (
     <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">

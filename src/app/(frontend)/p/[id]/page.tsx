@@ -14,6 +14,7 @@ import { requestKindFor } from '@/lib/kinds'
 import { getContentLocale } from '@/lib/server'
 import { fmtDate } from '@/lib/format'
 import { usesBengaliNames } from '@/i18n/locales'
+import { ReportButton as ReportContent } from '@/components/community'
 
 
 async function load(id: string) {
@@ -105,6 +106,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
               <ShieldCheck className="size-4 shrink-0" aria-hidden /> {t('provider.verificationHelp')}
             </p>
             {p.lastConfirmedAt && <p className="text-xs text-muted">{t('provider.lastConfirmed', { date: dateFmt(p.lastConfirmedAt) })}</p>}
+            <ReportContent target="provider" id={p.id} label={t('report.providerButton')} />
           </div>
         </aside>
 
@@ -212,7 +214,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
               {photos.map((m) => (
                 <li key={m.id}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={m.sizes?.card?.url ?? m.url ?? ''} alt={m.alt} loading="lazy" className="aspect-[4/3] w-full rounded-xl object-cover" />
+                  <img src={m.sizes?.card?.url ?? m.url ?? ''} alt={m.alt ?? ""} loading="lazy" className="aspect-[4/3] w-full rounded-xl object-cover" />
                 </li>
               ))}
             </ul>

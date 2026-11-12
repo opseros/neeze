@@ -50,7 +50,7 @@ export const Notifications: CollectionConfig = {
   defaultSort: '-createdAt',
   fields: [
     { name: 'user', type: 'relationship', relationTo: 'users', required: true, index: true },
-    { name: 'kind', type: 'select', required: true, options: ['new-request', 'request-update', 'new-review'] },
+    { name: 'kind', type: 'select', required: true, options: ['new-request', 'request-update', 'new-review', 'new-comment', 'post-approved', 'post-removed', 'report-outcome'] },
     { name: 'request', type: 'relationship', relationTo: 'requests' },
     { name: 'data', type: 'json' },
     { name: 'link', type: 'text' },

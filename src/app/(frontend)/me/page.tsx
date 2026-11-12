@@ -8,7 +8,7 @@ import { ReviewForm, Stars } from '@/components/reviews'
 import { canReview } from '@/lib/reviews'
 import { getOwnedListings } from '@/lib/account'
 import Link from 'next/link'
-import { Store } from 'lucide-react'
+import { Store, Bookmark } from 'lucide-react'
 import { Container, PageTitle } from '@/components/ui'
 import type { Provider } from '@/payload-types'
 import { redirect } from 'next/navigation'
@@ -16,6 +16,8 @@ import { redirect } from 'next/navigation'
 import { enabledProviders } from '@/lib/auth/server'
 import { getCurrentUser, getPayloadClient } from '@/lib/server'
 import { fmtDate } from '@/lib/format'
+import { UnblockButton } from '@/components/community'
+import { publicName } from '@/lib/reviews'
 
 const CANCELLABLE = new Set(['submitted', 'assigned', 'contacted', 'quoted', 'accepted'])
 const STATUS_STYLE: Record<string, string> = {
@@ -66,6 +68,10 @@ export default async function MePage() {
   const myReviews = await payload.find({ collection: 'reviews', where: { customer: { equals: user.id } }, limit: 100, depth: 0, overrideAccess: true })
   const reviewByRequest = new Map(myReviews.docs.map((rv) => [typeof rv.request === 'object' ? rv.request.id : rv.request, rv]))
   const fmt = (d: string) => fmtDate(d, locale, { dateStyle: 'medium', timeStyle: 'short' })
+  const blockedIds = ((user.blockedUsers ?? []) as (number | { id: number })[]).map((b) => (typeof b === 'object' ? b.id : b))
+  const blocked = blockedIds.length
+    ? (await payload.find({ collection: 'users', where: { id: { in: blockedIds } }, limit: 100, depth: 0, overrideAccess: true, select: { name: true } })).docs.map((u) => ({ id: u.id, name: publicName(u.name) }))
+    : []
 
   return (
     <>
@@ -90,6 +96,25 @@ export default async function MePage() {
           </span>
           <span className="font-semibold">{owned.length ? t('nav2.dashboard') : t('home2.bizCta')}</span>
         </Link>
+        <Link href="/saved" className="card flex items-center gap-3 transition hover:border-brand-blue/40">
+          <span className="grid size-10 place-items-center rounded-xl bg-brand-blue/10 text-brand-blue">
+            <Bookmark className="size-5" aria-hidden />
+          </span>
+          <span className="font-semibold">{t('me.savedLink')}</span>
+        </Link>
+        {blocked.length > 0 && (
+          <section className="card grid gap-2">
+            <h2 className="font-semibold">{t('community.blockedTitle')}</h2>
+            <ul className="grid gap-1">
+              {blocked.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span>{b.name}</span>
+                  <UnblockButton userId={b.id} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         </aside>
 
         <section className="grid content-start gap-3">

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { type MessageFormatElement, parse } from '@formatjs/icu-messageformat-parser'
 import { describe, expect, it } from 'vitest'
 
 import { mapMessages, toBengaliManipuri, toMeiteiMayek } from '../src/lib/meitei'
@@ -7,7 +8,19 @@ import { mapMessages, toBengaliManipuri, toMeiteiMayek } from '../src/lib/meitei
 const msg = (f: string) => JSON.parse(readFileSync(path.resolve(__dirname, '../messages', f), 'utf8'))
 const keys = (o: unknown, p = ''): string[] =>
   o && typeof o === 'object' ? Object.entries(o).flatMap(([k, v]) => keys(v, p ? `${p}.${k}` : k)) : [p]
-const placeholders = (s: string) => (s.match(/\{\w+(?=[},])|<\/?\w+>/g) ?? []).sort()
+// Argument names and rich-text tags, read with the same ICU parser next-intl uses.
+function placeholders(s: string): string[] {
+  const out = new Set<string>()
+  const walk = (els: MessageFormatElement[]) => {
+    for (const e of els) {
+      if ('value' in e && typeof e.value === 'string' && e.type !== 0) out.add(e.value)
+      if ('options' in e) for (const o of Object.values(e.options)) walk(o.value)
+      if ('children' in e) walk(e.children)
+    }
+  }
+  walk(parse(s))
+  return [...out].sort()
+}
 
 describe('Meitei Mayek conversion', () => {
   it.each([
@@ -50,7 +63,7 @@ describe('Manipuri message files', () => {
     const e = flat(en)
     const m = flat(src)
     for (const k of Object.keys(e)) {
-      for (const p of new Set(placeholders(e[k]))) expect(m[k], k).toContain(p)
+      expect(placeholders(m[k]), k).toEqual(placeholders(e[k]))
     }
   })
 

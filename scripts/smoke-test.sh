@@ -142,6 +142,79 @@ check "request type is set by the listing, not the browser" "$(curl -gs -b $T/ne
 
 curl -gs -o /dev/null -X PATCH $B/api/providers/$pid -H "$J" -H "Authorization: JWT $TOK" -d '{"owners":[]}'
 
+# --- community ---
+EC="chitra$R@example.com"; ED="dipu$R@example.com"; PC="96$(printf '%08d' $((RANDOM*RANDOM % 100000000)))"
+uidC=$(login $EC $T/neeze-ckC | jq_ "d['user']['id']")
+pc=$(curl -gs -b $T/neeze-ckC -X POST $B/auth/phone -H "$J" -d "{\"name\":\"Chitra Paul\",\"phone\":\"$PC\"}" | jq_ "d.get('devCode','')")
+[ -n "$pc" ] && curl -gs -o /dev/null -b $T/neeze-ckC -X POST $B/auth/phone/verify -H "$J" -d "{\"phone\":\"$PC\",\"code\":\"$pc\"}"
+login $ED $T/neeze-ckD > /dev/null
+ADM=(-H "Authorization: JWT $TOK")
+check "guest cannot post" "$(code_ -X POST $B/api/posts -H "$J" -d '{"body":"hello there"}')" "403"
+check "no mobile number, no posting" "$(code_ -b $T/neeze-ckD -X POST $B/api/posts -H "$J" -d '{"body":"hello there"}')" "428"
+P1TXT="Any good tailor near Tarapur $R?"
+p1=$(curl -gs -b $T/neeze-ckA -X POST $B/api/posts -H "$J" -d "{\"body\":\"$P1TXT\",\"topic\":\"question\",\"status\":\"published\",\"helpfulCount\":99}")
+pid1=$(echo $p1 | jq_ "d['doc']['id']")
+check "first post waits for review (and can't set its own status or counts)" "$(echo $p1 | jq_ "(d['doc']['status'], d['doc']['helpfulCount'])")" "('pending', 0)"
+s=$(code_ -b $T/neeze-ckB $B/api/posts/$pid1); check "others cannot read a pending post" "$([ $s == 403 -o $s == 404 ] && echo blocked)" "blocked"
+check "pending post not in the public feed" "$(curl -gs $B/community | grep -c "tailor near Tarapur $R")" "0"
+check "author sees own pending post on its page" "$(curl -gs -b $T/neeze-ckA $B/community/$pid1 | grep -c "tailor near Tarapur $R" | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "others can't open a pending post page" "$(curl -gs -b $T/neeze-ckB $B/community/$pid1 | grep -c "tailor near Tarapur $R")" "0"
+curl -gs -o /dev/null -X PATCH $B/api/posts/$pid1 -H "$J" "${ADM[@]}" -d '{"status":"published"}'
+check "moderator approves; author is told" "$(curl -gs -b $T/neeze-ckA "$B/api/notifications?where[kind][equals]=post-approved" | jq_ "d['totalDocs']>0")" "True"
+check "approved post appears in the feed" "$(curl -gs $B/community | grep -c "tailor near Tarapur $R" | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "public never sees who wrote it (author id)" "$(curl -gs "$B/api/posts/$pid1?depth=0" | jq_ "'author' in d")" "False"
+p2=$(curl -gs -b $T/neeze-ckA -X POST $B/api/posts -H "$J" -d '{"body":"Water supply off in Ambicapatty tomorrow","topic":"announcement"}'); pid2=$(echo $p2 | jq_ "d['doc']['id']")
+check "second post goes live straight away" "$(echo $p2 | jq_ "d['doc']['status']")" "published"
+check "others cannot edit a post" "$(code_ -b $T/neeze-ckB -X PATCH $B/api/posts/$pid2 -H "$J" -d '{"body":"hacked"}')" "403"
+check "author edits own post; counts stay server-side" "$(curl -gs -b $T/neeze-ckA -X PATCH $B/api/posts/$pid2 -H "$J" -d '{"body":"Water supply off in Ambicapatty tomorrow 9-5","helpfulCount":50,"status":"published"}' | jq_ "(d['doc']['body'][-3:], d['doc']['helpfulCount'], bool(d['doc'].get('editedAt')))")" "('9-5', 0, True)"
+check "guest cannot comment" "$(code_ -X POST $B/api/comments -H "$J" -d "{\"post\":$pid1,\"body\":\"hi\"}")" "403"
+cid=$(curl -gs -b $T/neeze-ckB -X POST $B/api/comments -H "$J" -d "{\"post\":$pid1,\"body\":\"Try Rahman Tailors on Link Road\"}" | jq_ "d['doc']['id']")
+check "comment counted on the post" "$(curl -gs "$B/api/posts/$pid1?depth=0" | jq_ "d['commentCount']")" "1"
+check "author told about the comment" "$(curl -gs -b $T/neeze-ckA "$B/api/notifications?where[kind][equals]=new-comment" | jq_ "d['totalDocs']>0")" "True"
+check "helpful toggles on" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/posts/$pid1/helpful | jq_ "(d['helpful'], d['count'])")" "(True, 1)"
+check "helpful toggles off" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/posts/$pid1/helpful | jq_ "(d['helpful'], d['count'])")" "(False, 0)"
+check "who marked helpful stays private" "$(curl -gs "$B/api/posts/$pid1?depth=0" | jq_ "'helpfulBy' in d")" "False"
+s=$(code_ -b $T/neeze-ckB -X DELETE $B/api/posts/$pid1); check "others cannot delete a post" "$([ $s == 403 -o $s == 404 ] && echo blocked)" "blocked"
+check "post page loads" "$(code_ $B/community/$pid1)" "200"
+check "rules page loads" "$(code_ $B/community/rules)" "200"
+check "write page sends guests to sign in" "$(curl -gs $B/community/new | grep -c 'signin?next=%2Fcommunity%2Fnew' | awk '{print ($1>0)?"yes":"no"}')" "yes"
+
+# reports
+check "invalid report reason refused" "$(code_ -b $T/neeze-ckB -X POST $B/api/content-reports/submit -H "$J" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"correction\"}")" "400"
+check "guest cannot report" "$(code_ -X POST $B/api/content-reports/submit -H "$J" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"spam\"}")" "401"
+check "report accepted" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/content-reports/submit -H "$J" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"spam\",\"note\":\"ad\"}" | jq_ "d['ok']")" "True"
+check "same person reporting twice counts once" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/content-reports/submit -H "$J" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"spam\"}" | jq_ "d.get('already')")" "True"
+check "reports can't be created through the open API" "$(code_ -b $T/neeze-ckB -X POST $B/api/content-reports -H "$J" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"spam\"}")" "403"
+check "reporter sees only their own reports" "$(curl -gs -b $T/neeze-ckB "$B/api/content-reports?depth=0" | jq_ "all(r['reporter']==$uidB for r in d['docs']) and d['totalDocs']>=1")" "True"
+check "author can't see who reported them" "$(curl -gs -b $T/neeze-ckA "$B/api/content-reports?where[targetId][equals]=$pid2" | jq_ "d['totalDocs']")" "0"
+curl -gs -o /dev/null -b $T/neeze-ckC -X POST $B/api/content-reports/submit -H "$J" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"abuse\"}"
+curl -gs -o /dev/null -X POST $B/api/content-reports/submit -H "$J" "${ADM[@]}" -d "{\"targetType\":\"post\",\"targetId\":$pid2,\"reason\":\"spam\"}"
+s=$(code_ "$B/api/posts/$pid2"); check "three reports hide the post" "$([ $s == 403 -o $s == 404 ] && echo hidden)" "hidden"
+curl -gs -o /dev/null -X PATCH $B/api/posts/$pid2 -H "$J" "${ADM[@]}" -d '{"status":"removed","moderationNote":"Advertising"}'
+check "moderator removes: reporter hears the outcome" "$(curl -gs -b $T/neeze-ckB "$B/api/notifications?where[kind][equals]=report-outcome" | jq_ "d['docs'][0]['data']['outcome']")" "resolved"
+check "moderator removes: author is told why" "$(curl -gs -b $T/neeze-ckA "$B/api/notifications?where[kind][equals]=post-removed" | jq_ "d['docs'][0]['data']['note']")" "Advertising"
+check "report on a listing accepted" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/content-reports/submit -H "$J" -d "{\"targetType\":\"provider\",\"targetId\":$pid,\"reason\":\"wrong-info\",\"note\":\"Number changed\"}" | jq_ "d['ok']")" "True"
+
+# blocks
+curl -gs -o /dev/null -b $T/neeze-ckB -X POST $B/api/users/block -H "$J" -d "{\"postId\":$pid1}"
+check "after blocking, the author's posts are gone for that person" "$(curl -gs -b $T/neeze-ckB $B/community | grep -c "tailor near Tarapur $R")" "0"
+check "...but still visible to others" "$(curl -gs $B/community | grep -c "tailor near Tarapur $R" | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "block list is private" "$(curl -gs -b $T/neeze-ckA "$B/api/users/$uidB" | jq_ "d.get('errors') is not None or 'blockedUsers' not in d")" "True"
+curl -gs -o /dev/null -b $T/neeze-ckB -X POST $B/api/users/block -H "$J" -d "{\"userId\":$uidA,\"unblock\":true}"
+check "unblock brings them back" "$(curl -gs -b $T/neeze-ckB $B/community | grep -c "tailor near Tarapur $R" | awk '{print ($1>0)?"yes":"no"}')" "yes"
+
+# restrictions, limits, photos
+curl -gs -o /dev/null -X POST $B/api/community-restrictions -H "$J" "${ADM[@]}" -d "{\"user\":$uidC,\"until\":\"$(date -u -d tomorrow +%Y-%m-%dT%H:%M:%SZ)\",\"reason\":\"Cooling off\"}"
+check "restricted member cannot post" "$(curl -gs -b $T/neeze-ckC -X POST $B/api/posts -H "$J" -d '{"body":"hello again"}' | jq_ "d['errors'][0]['message']")" "restricted"
+check "customers cannot restrict others" "$(code_ -b $T/neeze-ckB -X POST $B/api/community-restrictions -H "$J" -d "{\"user\":$uidA,\"until\":\"2030-01-01T00:00:00Z\",\"reason\":\"x\"}")" "403"
+for i in 1 2 3; do curl -gs -o /dev/null -b $T/neeze-ckA -X POST $B/api/posts -H "$J" -d "{\"body\":\"Post number $i today\"}"; done
+check "five posts a day, then a pause" "$(code_ -b $T/neeze-ckA -X POST $B/api/posts -H "$J" -d '{"body":"one too many"}')" "429"
+python3 -c "import zlib,struct;w=h=8;raw=b''.join(b'\x00'+b'\xff\x80\x00'*w for _ in range(h));c=lambda t,d:struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d));open('$T/neeze-dot.png','wb').write(b'\x89PNG\r\n\x1a\n'+c(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+c(b'IDAT',zlib.compress(raw))+c(b'IEND',b''))"
+mid=$(curl -gs -b $T/neeze-ckB -X POST $B/api/media -F "file=@$T/neeze-dot.png" -F '_payload={"alt":"dot"}' | jq_ "d['doc']['id']")
+check "member uploads a photo" "$([ -n "$mid" ] && [ "$mid" != "None" ] && echo yes)" "yes"
+check "uploader stays private" "$(curl -gs "$B/api/media/$mid" | jq_ "'uploadedBy' in d")" "False"
+check "can't attach someone else's photo" "$(code_ -b $T/neeze-ckC -X POST $B/api/comments -H "$J" -d '{}' >/dev/null; code_ -b $T/neeze-ckA -X PATCH $B/api/posts/$pid1 -H "$J" -d "{\"image\":$mid}")" "403"
+
 # --- sign-out ---
 curl -gs -b $T/neeze-ckA -c $T/neeze-ckA -o /dev/null -X POST $B/auth/logout
 check "sign-out clears session" "$(curl -gs -b $T/neeze-ckA $B/auth/me | jq_ "d['user']")" "None"

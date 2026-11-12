@@ -22,6 +22,10 @@ export default async function NotificationsPage() {
   const text = (n: Notification) => {
     const d = (n.data ?? {}) as Record<string, string | boolean | null>
     if (n.kind === 'new-review') return t('newReview', { author: String(d.author ?? ''), provider: String(d.providerName ?? ''), rating: String(d.rating ?? '') })
+    if (n.kind === 'new-comment') return t('newComment', { author: String(d.author ?? '') })
+    if (n.kind === 'post-approved') return t('postApproved', { target: String(d.target ?? 'post') })
+    if (n.kind === 'post-removed') return t('postRemoved', { target: String(d.target ?? 'post') }) + (d.note ? ` · ${d.note}` : '')
+    if (n.kind === 'report-outcome') return t('reportOutcome', { outcome: String(d.outcome ?? 'resolved') }) + (d.resolution ? ` · ${d.resolution}` : '')
     if (n.kind === 'new-request') return t(d.urgent ? 'newRequestUrgent' : 'newRequest', { code: String(d.code ?? ''), name: String(d.contactName ?? '') })
     return t(`update.${String(d.status ?? 'submitted')}` as 'update.submitted', { code: String(d.code ?? ''), provider: String(d.providerName ?? '') })
   }

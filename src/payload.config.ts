@@ -15,6 +15,7 @@ import { AuditLogs, Notifications, OtpChallenges } from './collections/System'
 import { Users } from './collections/Users'
 import { r2StoragePlugin } from './lib/storage'
 import { migrations } from './migrations'
+import { Comments, CommunityRestrictions, ContentReports, Posts } from './collections/Community'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -32,7 +33,9 @@ export default buildConfig({
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · Neeze Admin' },
   },
-  collections: [Providers, Requests, Reviews, Categories, Localities, News, Media, Users, Notifications, AuditLogs, OtpChallenges],
+  collections: [Providers, Requests, Reviews, Posts, Comments, ContentReports, CommunityRestrictions, Categories, Localities, News, Media, Users, Notifications, AuditLogs, OtpChallenges],
+  // Photos from phones are resized in the browser first; this is the hard cap (Vercel bodies max out at 4.5 MB).
+  upload: { limits: { fileSize: 4_000_000 } },
   globals: [SiteSettings],
   localization: {
     // Assamese ('as') can be added the same way; the data model is ready for it.

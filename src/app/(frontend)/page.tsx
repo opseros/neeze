@@ -8,9 +8,11 @@ import { LanguagePicker } from '@/components/client'
 import { CategoryIcon, VERTICAL_ICONS } from '@/components/icons'
 import { Container, ProviderCard } from '@/components/ui'
 import { LOCALE_COOKIE } from '@/i18n/request'
-import { getActiveVerticals, getCategoriesCached, getFeaturedProvidersCached, getNewsListCached, getSiteStatsCached } from '@/lib/cache'
+import { getActiveVerticals, getCategoriesCached, getCommunityFeedCached, getFeaturedProvidersCached, getNewsListCached, getSiteStatsCached } from '@/lib/cache'
 import { getContentLocale, getLocalities, getSelectedLocality, getSiteSettings } from '@/lib/server'
 import { fmtDate } from '@/lib/format'
+import { PostCard } from '@/components/community-view'
+import { getViewer } from '@/lib/community-server'
 
 const VERTICAL_ORDER = ['services', 'health', 'business', 'market', 'education', 'fitness', 'travel'] as const
 
@@ -27,6 +29,8 @@ export default async function Home() {
     getSiteSettings().catch(() => null),
     getSiteStatsCached(),
   ])
+  const [feed, viewer] = await Promise.all([getCommunityFeedCached({ page: 1 }, contentLocale), getViewer()])
+  const community = feed.docs.filter((p) => !p.authorId || !viewer.blocked.has(p.authorId)).slice(0, 3)
   const verticals = VERTICAL_ORDER.filter((v) => activeVerticals.includes(v))
   const serviceCats = categories.filter((c) => c.vertical === 'services')
   const emergency = (settings?.emergencyContacts ?? []).slice(0, 3)
@@ -208,6 +212,25 @@ export default async function Home() {
             </Link>
           </div>
         </div>
+      </Container>
+
+      {/* Community */}
+      <Container className="pt-10 md:pt-14">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="text-xl font-bold tracking-tight md:text-3xl">{t('community.fromCommunity')}</h2>
+          <Link href="/community" className="inline-flex items-center gap-1 font-semibold text-brand-blue">
+            {t('community.seeAll')} <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+        {community.length > 0 ? (
+          <ul className="mt-4 grid gap-4 md:grid-cols-3">
+            {community.map((p) => <PostCard key={p.id} post={p} />)}
+          </ul>
+        ) : (
+          <Link href="/community/new" className="mt-4 block rounded-2xl border border-dashed border-line bg-white p-6 text-center text-muted hover:border-brand-blue/40">
+            {t('community.empty')} <span className="font-semibold text-brand-blue">{t('community.write')} →</span>
+          </Link>
+        )}
       </Container>
 
       {/* News */}

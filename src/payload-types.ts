@@ -70,6 +70,10 @@ export interface Config {
     providers: Provider;
     requests: Request;
     reviews: Review;
+    posts: Post;
+    comments: Comment;
+    'content-reports': ContentReport;
+    'community-restrictions': CommunityRestriction;
     categories: Category;
     localities: Locality;
     news: News;
@@ -88,6 +92,10 @@ export interface Config {
     providers: ProvidersSelect<false> | ProvidersSelect<true>;
     requests: RequestsSelect<false> | RequestsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    'content-reports': ContentReportsSelect<false> | ContentReportsSelect<true>;
+    'community-restrictions': CommunityRestrictionsSelect<false> | CommunityRestrictionsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     localities: LocalitiesSelect<false> | LocalitiesSelect<true>;
     news: NewsSelect<false> | NewsSelect<true>;
@@ -291,7 +299,11 @@ export interface Locality {
  */
 export interface Media {
   id: number;
-  alt: string;
+  /**
+   * Describe the photo for people who cannot see it.
+   */
+  alt?: string | null;
+  uploadedBy?: (number | null) | User;
   prefix?: string | null;
   _objectKey?: string | null;
   updatedAt: string;
@@ -352,6 +364,7 @@ export interface User {
   locality?: (number | null) | Locality;
   suspended?: boolean | null;
   suspensionReason?: string | null;
+  blockedUsers?: (number | User)[] | null;
   updatedAt: string;
   createdAt: string;
   email?: string | null;
@@ -452,6 +465,99 @@ export interface Review {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  author?: (number | null) | User;
+  authorName?: string | null;
+  body: string;
+  image?: (number | null) | Media;
+  topic: 'question' | 'recommendation' | 'announcement' | 'lost-found' | 'general';
+  locality?: (number | null) | Locality;
+  /**
+   * pending = waiting for review · hidden = reported or held · removed = breaks the rules
+   */
+  status?: ('pending' | 'published' | 'hidden' | 'removed') | null;
+  commentsLocked?: boolean | null;
+  commentCount?: number | null;
+  helpfulCount?: number | null;
+  helpfulBy?: (number | User)[] | null;
+  editedAt?: string | null;
+  reportCount?: number | null;
+  reporters?: (number | User)[] | null;
+  /**
+   * Why it was hidden or removed. Shown to the author.
+   */
+  moderationNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  post: number | Post;
+  author?: (number | null) | User;
+  authorName?: string | null;
+  body: string;
+  status?: ('pending' | 'published' | 'hidden' | 'removed') | null;
+  reportCount?: number | null;
+  reporters?: (number | User)[] | null;
+  /**
+   * Why it was hidden or removed. Shown to the author.
+   */
+  moderationNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Reports on community posts and comments, news corrections and wrong listing details. Resolve or dismiss each one; the reporter is told.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-reports".
+ */
+export interface ContentReport {
+  id: number;
+  targetType: 'post' | 'comment' | 'news' | 'provider';
+  targetId: number;
+  /**
+   * Open the reported item.
+   */
+  link?: string | null;
+  excerpt?: string | null;
+  reporter?: (number | null) | User;
+  reason: 'spam' | 'abuse' | 'false-info' | 'privacy' | 'other' | 'correction' | 'wrong-info' | 'closed' | 'fraud';
+  note?: string | null;
+  status?: ('open' | 'resolved' | 'dismissed') | null;
+  /**
+   * What was done. The reporter sees this.
+   */
+  resolution?: string | null;
+  resolvedBy?: (number | null) | User;
+  resolvedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Stop someone posting, commenting and reporting until a date. For serious cases suspend the account in People → Users (admins).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "community-restrictions".
+ */
+export interface CommunityRestriction {
+  id: number;
+  user: number | User;
+  until: string;
+  reason: string;
+  by?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "news".
  */
 export interface News {
@@ -504,7 +610,14 @@ export interface News {
 export interface Notification {
   id: number;
   user: number | User;
-  kind: 'new-request' | 'request-update' | 'new-review';
+  kind:
+    | 'new-request'
+    | 'request-update'
+    | 'new-review'
+    | 'new-comment'
+    | 'post-approved'
+    | 'post-removed'
+    | 'report-outcome';
   request?: (number | null) | Request;
   data?:
     | {
@@ -593,6 +706,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'content-reports';
+        value: number | ContentReport;
+      } | null)
+    | ({
+        relationTo: 'community-restrictions';
+        value: number | CommunityRestriction;
       } | null)
     | ({
         relationTo: 'categories';
@@ -768,6 +897,76 @@ export interface ReviewsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  author?: T;
+  authorName?: T;
+  body?: T;
+  image?: T;
+  topic?: T;
+  locality?: T;
+  status?: T;
+  commentsLocked?: T;
+  commentCount?: T;
+  helpfulCount?: T;
+  helpfulBy?: T;
+  editedAt?: T;
+  reportCount?: T;
+  reporters?: T;
+  moderationNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  post?: T;
+  author?: T;
+  authorName?: T;
+  body?: T;
+  status?: T;
+  reportCount?: T;
+  reporters?: T;
+  moderationNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-reports_select".
+ */
+export interface ContentReportsSelect<T extends boolean = true> {
+  targetType?: T;
+  targetId?: T;
+  link?: T;
+  excerpt?: T;
+  reporter?: T;
+  reason?: T;
+  note?: T;
+  status?: T;
+  resolution?: T;
+  resolvedBy?: T;
+  resolvedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "community-restrictions_select".
+ */
+export interface CommunityRestrictionsSelect<T extends boolean = true> {
+  user?: T;
+  until?: T;
+  reason?: T;
+  by?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
@@ -839,6 +1038,7 @@ export interface NewsSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  uploadedBy?: T;
   prefix?: T;
   _objectKey?: T;
   updatedAt?: T;
@@ -898,6 +1098,7 @@ export interface UsersSelect<T extends boolean = true> {
   locality?: T;
   suspended?: T;
   suspensionReason?: T;
+  blockedUsers?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1023,6 +1224,12 @@ export interface SiteSetting {
     | null;
   supportPhone?: string | null;
   grievanceEmail?: string | null;
+  community?: {
+    /**
+     * Posts with several links always wait for review. Reported posts hide themselves after 3 reports.
+     */
+    postingMode?: ('open' | 'first-post' | 'all') | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1048,6 +1255,11 @@ export interface SiteSettingsSelect<T extends boolean = true> {
       };
   supportPhone?: T;
   grievanceEmail?: T;
+  community?:
+    | T
+    | {
+        postingMode?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
