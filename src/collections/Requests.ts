@@ -7,6 +7,7 @@ import { audit } from '../hooks/audit'
 import { notifyNewRequest, notifyStatusChange } from '../lib/notify'
 import { REQUEST_STATUSES, type Actor, type RequestStatus, canTransition, needsReason } from '../lib/requestStatus'
 import { normalizeIndianMobile } from '../lib/text'
+import { requestKindFor } from '../lib/kinds'
 
 const MAX_REQUESTS_PER_DAY = 10
 
@@ -123,6 +124,7 @@ export const Requests: CollectionConfig = {
           }
           return {
             ...data,
+            kind: requestKindFor(provider.type), // decided by the listing, not the browser
             contactPhone: phone,
             customer: req.user.id,
             code: requestCode(),

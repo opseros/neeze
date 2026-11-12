@@ -4,13 +4,15 @@ import { notFound } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 
 import { SaveButton } from '@/components/client'
+import { ReportButton, Stars } from '@/components/reviews'
 import { CategoryIcon } from '@/components/icons'
 import { Container, PageTitle, VerificationBadge } from '@/components/ui'
 import type { Category, Locality, Media } from '@/payload-types'
-import { getProviderCached } from '@/lib/cache'
+import { getProviderCached, getProviderReviewsCached } from '@/lib/cache'
+import { MIN_REVIEWS_FOR_AVERAGE } from '@/lib/reviews'
+import { requestKindFor } from '@/lib/kinds'
 import { getContentLocale } from '@/lib/server'
 
-const HEALTH_TYPES = new Set(['doctor', 'clinic', 'hospital', 'diagnostic'])
 
 async function load(id: string) {
   const n = Number(id)
@@ -26,13 +28,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProviderPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await load((await params).id)
   if (!p) notFound()
-  const [t, locale] = await Promise.all([getTranslations(), getLocale()])
+  const [t, locale, reviews] = await Promise.all([getTranslations(), getLocale(), getProviderReviewsCached(p.id, 20)])
+  const ratingCount = p.ratingCount ?? 0
+  const showAvg = ratingCount >= MIN_REVIEWS_FOR_AVERAGE && p.ratingAvg != null
   const cats = (p.categories as (number | Category)[]).filter((c): c is Category => typeof c === 'object')
   const primary = cats[0]
   const base = typeof p.baseLocality === 'object' ? (p.baseLocality as Locality) : null
   const areas = ((p.serviceLocalities ?? []) as (number | Locality)[]).filter((l): l is Locality => typeof l === 'object')
   const photos = ((p.photos ?? []) as (number | Media)[]).filter((m): m is Media => typeof m === 'object')
-  const isHealth = HEALTH_TYPES.has(p.type)
+  const kind = requestKindFor(p.type)
   const wa = p.whatsapp?.replace(/\D/g, '')
   const mapUrl = p.lat != null && p.lng != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : null
   const dateFmt = (d: string) => new Date(d).toLocaleDateString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium' })
@@ -83,12 +87,18 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
             </div>
             {p.acceptsRequests ? (
               <Link className="btn-secondary border-brand-navy text-brand-navy" href={`/request/${p.id}`}>
-                <CalendarClock className="size-4" aria-hidden /> {isHealth ? t('provider.appointment') : t('provider.request')}
+                <CalendarClock className="size-4" aria-hidden /> {kind === 'appointment' ? t('provider.appointment') : kind === 'enquiry' ? t('provider.enquiry') : t('provider.request')}
               </Link>
             ) : (
               <p className="rounded-lg bg-surface p-3 text-sm text-muted">{t('provider.notAccepting')}</p>
             )}
             <SaveButton provider={savePayload} />
+            {ratingCount > 0 && (
+              <a href="#reviews" className="flex items-center gap-2 text-sm">
+                {showAvg && <Stars value={p.ratingAvg!} />}
+                <span className="font-medium text-ink">{showAvg ? t('reviews.summary', { avg: p.ratingAvg!.toFixed(1), count: ratingCount }) : t('reviews.fewReviews', { count: ratingCount })}</span>
+              </a>
+            )}
             <p className="flex gap-2 text-xs text-muted">
               <ShieldCheck className="size-4 shrink-0" aria-hidden /> {t('provider.verificationHelp')}
             </p>
@@ -156,6 +166,44 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
               </Section>
             )}
           </div>
+
+          <section id="reviews" className="scroll-mt-24 rounded-2xl border border-line bg-white p-5 shadow-card">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-semibold text-ink">{t('reviews.title')}</h2>
+              {showAvg && (
+                <span className="flex items-center gap-2 text-sm">
+                  <Stars value={p.ratingAvg!} /> <span className="font-semibold">{p.ratingAvg!.toFixed(1)}</span>
+                  <span className="text-muted">({ratingCount})</span>
+                </span>
+              )}
+            </div>
+            {reviews.length === 0 ? (
+              <p className="text-sm text-muted">{t('reviews.noneYet')}</p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {reviews.map((rv) => (
+                  <li key={rv.id} className="py-4 first:pt-0 last:pb-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Stars value={rv.rating} size="size-3.5" />
+                      <span className="font-medium">{rv.authorName}</span>
+                      <span className="pill bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200">{t('reviews.verified')}</span>
+                      <span className="text-xs text-muted">{dateFmt(rv.createdAt)}</span>
+                    </div>
+                    {rv.comment && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{rv.comment}</p>}
+                    {rv.reply && (
+                      <div className="mt-3 rounded-lg border-l-4 border-brand-blue/40 bg-surface p-3 text-sm">
+                        <p className="text-xs font-semibold text-muted">{t('reviews.reply')}</p>
+                        <p className="mt-1 whitespace-pre-line">{rv.reply}</p>
+                      </div>
+                    )}
+                    <div className="mt-2">
+                      <ReportButton reviewId={rv.id} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           {photos.length > 0 && (
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">

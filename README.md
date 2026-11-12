@@ -23,7 +23,9 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 | Provider dashboard at /provider: new / in-progress / finished requests, customer call + WhatsApp, quote, status steps, decline with reason | Done |
 | "List your business": providers add and edit their own listings; new ones wait for admin review | Done |
 | Notifications: in-app bell + email both ways; WhatsApp alert to providers when a template is set | Done |
-| Community | P1 |
+| Verified reviews: only after a completed job, one per job, 60-day window; average shown from 3 reviews; provider reply; report + auto-hide at 3 reports | Done |
+| P1 listings: schools, gyms, hotels, bus operators with an enquiry flow; switch each category on in Admin → Categories | Done |
+| Community | Later |
 | Assamese | P1: add `{ code: 'as' }` to `localization.locales` and `messages/as.json` |
 
 ## Run it locally
@@ -46,10 +48,10 @@ In dev, sign-in and mobile codes are printed in the server log and shown on scre
 
 ```bash
 npm test                                  # unit tests: roles, status transitions, search text, phones, session, OTP
-BASE=http://localhost:3000 scripts/smoke-test.sh   # 53 API checks against a running dev server seeded with demo data
+BASE=http://localhost:3000 scripts/smoke-test.sh   # 68 API checks against a running dev server seeded with demo data
 ```
 
-The smoke test covers the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
+The smoke test covers reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
 
 ## Deploy
 
@@ -91,6 +93,14 @@ scripts/                     smoke test, icon generator
 1. They sign in and use **List your business** (or the admin creates the listing).
 2. Admin → Providers → the listing: check details, set *Status* to *published*, set the *Verification* label to match what was checked, and make sure their account is in *Owners*.
 3. They see requests at **/provider** and get an email and in-app alert for each one.
+
+## Moderating reviews
+
+Admin → Reviews. Sort by *Report count*. A review reported by 3 different people is hidden automatically until you look at it; set *Status* back to *published* if it's fair. Hiding or deleting a review updates the provider's rating straight away.
+
+## Switching on P1 categories
+
+Admin → Categories → School / Gym / Hotel / Bus operator → tick *Active*. The category appears on the home page and in search once it's active; list providers with the matching *Type*.
 
 ## Before launch: checklist
 

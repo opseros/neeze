@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     providers: Provider;
     requests: Request;
+    reviews: Review;
     categories: Category;
     localities: Locality;
     news: News;
@@ -86,6 +87,7 @@ export interface Config {
   collectionsSelect: {
     providers: ProvidersSelect<false> | ProvidersSelect<true>;
     requests: RequestsSelect<false> | RequestsSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     localities: LocalitiesSelect<false> | LocalitiesSelect<true>;
     news: NewsSelect<false> | NewsSelect<true>;
@@ -157,7 +159,17 @@ export interface Provider {
   id: number;
   name: string;
   nameBn?: string | null;
-  type: 'service-professional' | 'business' | 'doctor' | 'clinic' | 'hospital' | 'diagnostic';
+  type:
+    | 'service-professional'
+    | 'business'
+    | 'doctor'
+    | 'clinic'
+    | 'hospital'
+    | 'diagnostic'
+    | 'school'
+    | 'gym'
+    | 'hotel'
+    | 'bus-operator';
   categories: (number | Category)[];
   summary?: string | null;
   /**
@@ -210,6 +222,8 @@ export interface Provider {
    * When contact details were last confirmed.
    */
   lastConfirmedAt?: string | null;
+  ratingAvg?: number | null;
+  ratingCount?: number | null;
   searchText?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -407,6 +421,32 @@ export interface Request {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  request: number | Request;
+  provider: number | Provider;
+  customer?: (number | null) | User;
+  authorName?: string | null;
+  rating: number;
+  comment?: string | null;
+  /**
+   * The provider's public reply (one per review).
+   */
+  reply?: string | null;
+  repliedAt?: string | null;
+  /**
+   * Hide reviews that break the content rules.
+   */
+  status?: ('published' | 'hidden') | null;
+  reportCount?: number | null;
+  reporters?: (number | User)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "news".
  */
 export interface News {
@@ -459,7 +499,7 @@ export interface News {
 export interface Notification {
   id: number;
   user: number | User;
-  kind: 'new-request' | 'request-update';
+  kind: 'new-request' | 'request-update' | 'new-review';
   request?: (number | null) | Request;
   data?:
     | {
@@ -544,6 +584,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'requests';
         value: number | Request;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
       } | null)
     | ({
         relationTo: 'categories';
@@ -658,6 +702,8 @@ export interface ProvidersSelect<T extends boolean = true> {
   verification?: T;
   verificationNotes?: T;
   lastConfirmedAt?: T;
+  ratingAvg?: T;
+  ratingCount?: T;
   searchText?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -693,6 +739,25 @@ export interface RequestsSelect<T extends boolean = true> {
         id?: T;
       };
   idempotencyKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  request?: T;
+  provider?: T;
+  customer?: T;
+  authorName?: T;
+  rating?: T;
+  comment?: T;
+  reply?: T;
+  repliedAt?: T;
+  status?: T;
+  reportCount?: T;
+  reporters?: T;
   updatedAt?: T;
   createdAt?: T;
 }

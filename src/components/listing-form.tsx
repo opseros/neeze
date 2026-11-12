@@ -20,7 +20,7 @@ type Initial = {
   acceptsRequests?: boolean | null
 }
 
-const TYPES = ['service-professional', 'business', 'doctor', 'clinic', 'hospital', 'diagnostic'] as const
+const TYPES = ['service-professional', 'business', 'doctor', 'clinic', 'hospital', 'diagnostic', 'school', 'gym', 'hotel', 'bus-operator'] as const
 
 export function ListingForm({ categories, localities, initial }: { categories: (Opt & { group: string })[]; localities: Opt[]; initial?: Initial }) {
   const t = useTranslations('listing')

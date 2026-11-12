@@ -7,9 +7,9 @@ import { Container, PageTitle, VerificationBadge } from '@/components/ui'
 import type { Locality } from '@/payload-types'
 import { enabledProviders } from '@/lib/auth/server'
 import { getProviderCached } from '@/lib/cache'
+import { requestKindFor } from '@/lib/kinds'
 import { getContentLocale, getCurrentUser, getLocalities, getSelectedLocality } from '@/lib/server'
 
-const HEALTH_TYPES = new Set(['doctor', 'clinic', 'hospital', 'diagnostic'])
 
 export default async function RequestPage({ params }: { params: Promise<{ providerId: string }> }) {
   const id = Number((await params).providerId)
@@ -19,7 +19,7 @@ export default async function RequestPage({ params }: { params: Promise<{ provid
 
   const t = await getTranslations()
   const [localities, selected, user] = await Promise.all([getLocalities(), getSelectedLocality(), getCurrentUser()])
-  const kind = HEALTH_TYPES.has(p.type) ? 'appointment' : 'service'
+  const kind = requestKindFor(p.type)
   const firstCat = (p.categories as (number | { id: number })[])[0]
   const categoryId = typeof firstCat === 'object' ? firstCat.id : firstCat
   const base = typeof p.baseLocality === 'object' ? (p.baseLocality as Locality) : null
@@ -27,7 +27,7 @@ export default async function RequestPage({ params }: { params: Promise<{ provid
   return (
     <>
       <PageTitle
-        title={kind === 'appointment' ? t('request.titleAppointment') : t('request.titleService')}
+        title={kind === 'appointment' ? t('request.titleAppointment') : kind === 'enquiry' ? t('request.titleEnquiry') : t('request.titleService')}
         subtitle={t('request.to', { name: p.name })}
         back={`/p/${p.id}`}
         crumbs={[

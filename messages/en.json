@@ -92,7 +92,8 @@
     "verificationHelp": "This label shows only what Neeze has checked. It is not a guarantee of work quality.",
     "contactTitle": "Contact",
     "about": "About",
-    "breadcrumbHome": "Home"
+    "breadcrumbHome": "Home",
+    "enquiry": "Send an enquiry"
   },
   "request": {
     "titleService": "Request a service",
@@ -124,7 +125,10 @@
     "sent": "Request sent",
     "sentBody": "Your request number is {code}. {name} will contact you. You can track it under Me.",
     "track": "Track my requests",
-    "error": "Could not send. Please check the details and try again."
+    "error": "Could not send. Please check the details and try again.",
+    "titleEnquiry": "Send an enquiry",
+    "enquiryNote": "Ask about admissions, fees, membership, rooms or seats. They will call you back.",
+    "enquiryHint": "For example: admission for class 3 next year, fees and timings?"
   },
   "auth": {
     "title": "Login or Sign up",
@@ -262,7 +266,8 @@
     "tabs": {
       "new": "New",
       "active": "In progress",
-      "done": "Finished"
+      "done": "Finished",
+      "reviews": "Reviews"
     },
     "emptyNew": "No new requests right now. We'll notify you by email and in the app when one arrives.",
     "emptyActive": "Nothing in progress.",
@@ -343,7 +348,11 @@
       "doctor": "Doctor",
       "clinic": "Clinic",
       "hospital": "Hospital",
-      "diagnostic": "Diagnostic centre"
+      "diagnostic": "Diagnostic centre",
+      "school": "School / institute",
+      "gym": "Gym / fitness centre",
+      "hotel": "Hotel",
+      "bus-operator": "Bus operator"
     }
   },
   "notif": {
@@ -363,7 +372,8 @@
       "expired": "{code} expired",
       "submitted": "{code} updated",
       "assigned": "{code} updated"
-    }
+    },
+    "newReview": "{author} gave {provider} {rating} stars"
   },
   "home2": {
     "statsProviders": "{count, plural, one {# provider} other {# providers}}",
@@ -383,5 +393,34 @@
   "nav2": {
     "dashboard": "Provider dashboard",
     "notifications": "Notifications"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "verified": "Verified job",
+    "rateTitle": "How did it go?",
+    "rateBody": "Your review helps others in Silchar. Only your first name and initial are shown.",
+    "stars": "{count, plural, one {# star} other {# stars}}",
+    "commentLabel": "Tell others about the work (optional)",
+    "commentHint": "Was the provider on time? Was the price fair? Was the work done well?",
+    "submit": "Post review",
+    "thanks": "Thanks for your review!",
+    "summary": "{avg} · {count, plural, one {# review} other {# reviews}}",
+    "fewReviews": "{count, plural, one {# review} other {# reviews}}",
+    "noneYet": "No reviews yet. Reviews come only from customers whose job was completed through Neeze.",
+    "reply": "Reply from the provider",
+    "replyLabel": "Public reply",
+    "replySubmit": "Post reply",
+    "replied": "Reply posted.",
+    "report": "Report",
+    "reported": "Thanks, we'll take a look.",
+    "newReviews": "Reviews",
+    "rules": "Reviews must be about the job. We hide reviews with abuse, personal details or advertising.",
+    "errors": {
+      "not_completed": "You can review once the job is marked completed.",
+      "already_reviewed": "You have already reviewed this job.",
+      "too_late": "Reviews close 60 days after the job.",
+      "not_yours": "Only the customer can review this job.",
+      "generic": "Couldn't post. Please try again."
+    }
   }
 }

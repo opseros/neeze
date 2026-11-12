@@ -14,7 +14,7 @@ type AuthUser = { id: number; name?: string | null; phone?: string | null } | nu
 
 type RequestFormProps = {
   provider: { id: number; name: string; categoryId?: number }
-  kind: 'service' | 'appointment'
+  kind: 'service' | 'appointment' | 'enquiry'
   localities: { id: number; name: string }[]
   defaultLocality?: number
   user: AuthUser
@@ -170,9 +170,10 @@ export function RequestForm({ provider, kind, localities, defaultLocality, user:
       }}
     >
       {kind === 'appointment' && <p className="rounded-lg bg-brand-teal/10 p-3 text-sm text-ink">{t('appointmentNote')}</p>}
+      {kind === 'enquiry' && <p className="rounded-lg bg-brand-blue/10 p-3 text-sm text-ink">{t('enquiryNote')}</p>}
       <label className="field">
         <span>{t('describe')}</span>
-        <textarea required minLength={5} maxLength={1000} rows={4} placeholder={t('describeHint')} value={form.description} onChange={set('description')} className="input" />
+        <textarea required minLength={5} maxLength={1000} rows={4} placeholder={kind === 'enquiry' ? t('enquiryHint') : t('describeHint')} value={form.description} onChange={set('description')} className="input" />
       </label>
       <label className="field">
         <span>{t('area')}</span>

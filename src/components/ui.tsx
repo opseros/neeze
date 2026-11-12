@@ -1,4 +1,4 @@
-import { ArrowLeft, BadgeCheck, Bell, ChevronRight, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Bell, ChevronRight, MapPin, Phone, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
@@ -187,6 +187,12 @@ export async function ProviderCard({ p, locale }: { p: Provider; locale: string 
           {base && (
             <span className="mt-1 flex items-center gap-1 text-sm text-muted">
               <MapPin className="size-3.5" aria-hidden /> {base.name}
+            </span>
+          )}
+          {(p.ratingCount ?? 0) >= 3 && p.ratingAvg != null && (
+            <span className="mt-1 flex items-center gap-1 text-sm font-medium text-ink">
+              <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden /> {p.ratingAvg.toFixed(1)}
+              <span className="font-normal text-muted">({p.ratingCount})</span>
             </span>
           )}
           {p.summary && <span className="mt-2 line-clamp-2 block text-sm text-ink/80">{p.summary}</span>}

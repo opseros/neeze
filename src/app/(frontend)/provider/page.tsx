@@ -1,4 +1,6 @@
-import { AlertTriangle, ChevronRight, Inbox, MapPin, Plus, Store } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Inbox, MapPin, MessageSquareQuote, Plus, Store } from 'lucide-react'
+import { ReplyForm, Stars } from '@/components/reviews'
+import type { Review } from '@/payload-types'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 
@@ -12,7 +14,7 @@ const TABS = {
   active: ['contacted', 'quoted', 'accepted', 'in-progress'],
   done: ['completed', 'cancelled', 'rejected', 'expired'],
 } as const
-type Tab = keyof typeof TABS
+type Tab = keyof typeof TABS | 'reviews'
 
 export async function generateMetadata() {
   const t = await getTranslations('dash')
@@ -21,9 +23,9 @@ export async function generateMetadata() {
 
 export default async function ProviderDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const user = await requireUser('/provider')
-  const [t, tm, locale] = await Promise.all([getTranslations('dash'), getTranslations('dash.status'), getLocale()])
+  const [t, tm, tr, locale] = await Promise.all([getTranslations('dash'), getTranslations('dash.status'), getTranslations('reviews'), getLocale()])
   const tabParam = (await searchParams).tab
-  const tab: Tab = (['new', 'active', 'done'] as const).find((x) => x === tabParam) ?? 'new'
+  const tab: Tab = (['new', 'active', 'done', 'reviews'] as const).find((x) => x === tabParam) ?? 'new'
   const listings = await getOwnedListings(user)
 
   if (!listings.length) {
@@ -47,25 +49,31 @@ export default async function ProviderDashboard({ searchParams }: { searchParams
   const payload = await getPayloadClient()
   const ids = listings.map((l) => l.id)
   const base = { provider: { in: ids } }
-  const [list, ...counts] = await Promise.all([
-    payload.find({ collection: 'requests', where: { and: [base, { status: { in: [...TABS[tab]] } }] }, sort: tab === 'done' ? '-updatedAt' : '-createdAt', limit: 50, depth: 1, user, overrideAccess: false }),
-    ...(Object.keys(TABS) as Tab[]).map((k) => payload.count({ collection: 'requests', where: { and: [base, { status: { in: [...TABS[k]] } }] }, user, overrideAccess: false })),
+  const statusTabs = Object.keys(TABS) as (keyof typeof TABS)[]
+  const [list, reviewList, ...counts] = await Promise.all([
+    tab === 'reviews'
+      ? Promise.resolve({ docs: [] as Req[] })
+      : payload.find({ collection: 'requests', where: { and: [base, { status: { in: [...TABS[tab]] } }] }, sort: tab === 'done' ? '-updatedAt' : '-createdAt', limit: 50, depth: 1, user, overrideAccess: false }),
+    payload.find({ collection: 'reviews', where: { provider: { in: ids } }, sort: '-createdAt', limit: tab === 'reviews' ? 50 : 1, depth: 0, overrideAccess: true }),
+    ...statusTabs.map((k) => payload.count({ collection: 'requests', where: { and: [base, { status: { in: [...TABS[k]] } }] }, user, overrideAccess: false })),
   ])
-  const count = Object.fromEntries((Object.keys(TABS) as Tab[]).map((k, i) => [k, counts[i].totalDocs])) as Record<Tab, number>
+  const count = { ...Object.fromEntries(statusTabs.map((k, i) => [k, counts[i].totalDocs])), reviews: reviewList.totalDocs ?? 0 } as Record<Tab, number>
   const docs = list.docs as Req[]
+  const reviews = reviewList.docs as Review[]
+  const listingName = new Map(listings.map((l) => [l.id, l.name]))
 
   return (
     <>
       <PageTitle title={t('title')} subtitle={t('subtitle')} />
       <Container className="grid gap-6 py-6 lg:grid-cols-[1fr_300px] lg:gap-10 lg:py-8">
         <section>
-          <nav className="mb-4 flex gap-1 rounded-xl border border-line bg-white p-1" aria-label={t('title')}>
-            {(Object.keys(TABS) as Tab[]).map((k) => (
+          <nav className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-line bg-white p-1" aria-label={t('title')}>
+            {([...statusTabs, 'reviews'] as Tab[]).map((k) => (
               <Link
                 key={k}
                 href={`/provider?tab=${k}`}
                 aria-current={tab === k ? 'page' : undefined}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === k ? 'bg-brand-navy text-white' : 'text-muted hover:bg-surface'}`}
+                className={`flex flex-1 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${tab === k ? 'bg-brand-navy text-white' : 'text-muted hover:bg-surface'}`}
               >
                 {t(`tabs.${k}`)}
                 <span className={`rounded-full px-2 text-xs ${tab === k ? 'bg-white/20' : k === 'new' && count.new ? 'bg-red-600 text-white' : 'bg-surface'}`}>{count[k]}</span>
@@ -73,7 +81,36 @@ export default async function ProviderDashboard({ searchParams }: { searchParams
             ))}
           </nav>
 
-          {docs.length === 0 ? (
+          {tab === 'reviews' ? (
+            reviews.length === 0 ? (
+              <div className="grid place-items-center rounded-2xl border border-dashed border-line bg-white p-10 text-center">
+                <MessageSquareQuote className="size-10 text-muted" aria-hidden />
+                <p className="mt-3 max-w-sm text-muted">{tr('noneYet')}</p>
+              </div>
+            ) : (
+              <ul className="grid gap-3">
+                {reviews.map((rv) => (
+                  <li key={rv.id} className="card grid gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Stars value={rv.rating} size="size-4" />
+                      <span className="font-medium">{rv.authorName}</span>
+                      <span className="text-xs text-muted">· {listingName.get(typeof rv.provider === 'object' ? rv.provider.id : rv.provider)} · {relativeTime(rv.createdAt, locale)}</span>
+                      {rv.status === 'hidden' && <span className="pill bg-slate-100 text-slate-700">hidden</span>}
+                    </div>
+                    {rv.comment && <p className="whitespace-pre-line text-sm">{rv.comment}</p>}
+                    {rv.reply ? (
+                      <div className="rounded-lg border-l-4 border-brand-blue/40 bg-surface p-3 text-sm">
+                        <p className="text-xs font-semibold text-muted">{tr('reply')}</p>
+                        <p className="mt-1 whitespace-pre-line">{rv.reply}</p>
+                      </div>
+                    ) : (
+                      <ReplyForm reviewId={rv.id} />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : docs.length === 0 ? (
             <div className="grid place-items-center rounded-2xl border border-dashed border-line bg-white p-10 text-center">
               <Inbox className="size-10 text-muted" aria-hidden />
               <p className="mt-3 max-w-sm text-muted">{tab === 'new' ? t('emptyNew') : tab === 'active' ? t('emptyActive') : t('emptyDone')}</p>

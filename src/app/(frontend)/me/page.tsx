@@ -4,6 +4,8 @@ import { LanguagePicker, OutboxList } from '@/components/client'
 import { AuthPanel, SignOutButton } from '@/components/auth'
 import { CancelRequestButton } from '@/components/forms'
 import { StatusTimeline } from '@/components/timeline'
+import { ReviewForm, Stars } from '@/components/reviews'
+import { canReview } from '@/lib/reviews'
 import { getOwnedListings } from '@/lib/account'
 import Link from 'next/link'
 import { Store } from 'lucide-react'
@@ -59,6 +61,9 @@ export default async function MePage() {
     overrideAccess: false,
   })
   const owned = await getOwnedListings(user)
+  // `customer` is a private field, so this lookup runs server-side, limited to the signed-in user.
+  const myReviews = await payload.find({ collection: 'reviews', where: { customer: { equals: user.id } }, limit: 100, depth: 0, overrideAccess: true })
+  const reviewByRequest = new Map(myReviews.docs.map((rv) => [typeof rv.request === 'object' ? rv.request.id : rv.request, rv]))
   const fmt = (d: string) => new Date(d).toLocaleString(locale === 'bn' ? 'bn-IN' : 'en-IN', { dateStyle: 'medium', timeStyle: 'short' })
 
   return (
@@ -106,6 +111,12 @@ export default async function MePage() {
                       {r.code} · {fmt(r.createdAt)}
                     </p>
                     {r.quoteNote && <p className="rounded-lg bg-surface p-2 text-sm">{r.quoteNote}</p>}
+                    {(() => {
+                      const existing = reviewByRequest.get(r.id)
+                      if (existing) return <span className="flex items-center gap-2 text-sm"><Stars value={existing.rating} size="size-3.5" /> <span className="text-muted">{t('reviews.thanks')}</span></span>
+                      const completedAt = (r.history ?? []).filter((h) => h.status === 'completed').at(-1)?.at
+                      return canReview({ isCustomer: true, status: r.status, completedAt, alreadyReviewed: false }).ok ? <ReviewForm requestId={r.id} /> : null
+                    })()}
                     <details className="group mt-1">
                       <summary className="cursor-pointer list-none text-sm font-medium text-brand-blue">{t('dash.timeline')} ▾</summary>
                       <div className="mt-3">

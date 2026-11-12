@@ -3,7 +3,7 @@ import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
 import { getPayload, type Where } from 'payload'
 
-import type { Category, Locality, News, Provider, SiteSetting } from '@/payload-types'
+import type { Category, Locality, News, Provider, Review, SiteSetting } from '@/payload-types'
 import { normalizeForSearch } from './text'
 
 /**
@@ -17,6 +17,7 @@ export const TAGS = {
   localities: 'localities',
   news: 'news',
   settings: 'settings',
+  reviews: 'reviews',
 } as const
 
 type Locale = 'en' | 'bn'
@@ -191,4 +192,20 @@ export const getSiteStatsCached = unstable_cache(
   },
   ['site-stats-v1'],
   { tags: [TAGS.providers, TAGS.categories, TAGS.localities], revalidate: HOUR },
+)
+
+export const getProviderReviewsCached = unstable_cache(
+  async (providerId: number, limit: number): Promise<Review[]> => {
+    const { docs } = await (await payload()).find({
+      collection: 'reviews',
+      where: { and: [{ provider: { equals: providerId } }, { status: { equals: 'published' } }] },
+      sort: '-createdAt',
+      limit,
+      depth: 0,
+      overrideAccess: false,
+    })
+    return docs as Review[]
+  },
+  ['provider-reviews-v1'],
+  { tags: [TAGS.reviews], revalidate: HOUR },
 )

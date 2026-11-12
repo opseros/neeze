@@ -116,6 +116,30 @@ check "owner can mark own notification read (and can't reassign it)" "$(curl -gs
 check "dashboard page loads for the owner" "$(code_ -b $T/neeze-ckB $B/provider)" "200"
 check "request page loads for the owner" "$(code_ -b $T/neeze-ckB $B/provider/requests/$rid2)" "200"
 check "request page is hidden from non-owners" "$(curl -gs -b $T/neeze-ckA $B/provider/requests/$rid2 | grep -c 'Switchboard sparking')" "0"
+
+# --- verified reviews ---
+check "provider owner cannot review their own job" "$(code_ -b $T/neeze-ckB -X POST $B/api/reviews -H "$J" -d "{\"request\":$rid2,\"rating\":5}")" "403"
+check "no review on a cancelled request" "$(code_ -b $T/neeze-ckA -X POST $B/api/reviews -H "$J" -d "{\"request\":$rid,\"rating\":1}")" "400"
+check "rating must be 1-5" "$(code_ -b $T/neeze-ckA -X POST $B/api/reviews -H "$J" -d "{\"request\":$rid2,\"rating\":9}")" "400"
+rc0=$(curl -gs "$B/api/providers/$pid?depth=0" | jq_ "d.get('ratingCount') or 0")
+rv=$(curl -gs -b $T/neeze-ckA -X POST $B/api/reviews -H "$J" -d "{\"request\":$rid2,\"rating\":5,\"comment\":\"Came on time and fixed it.\",\"status\":\"hidden\",\"authorName\":\"Fake Name\"}")
+rvid=$(echo $rv | jq_ "d['doc']['id']")
+check "customer reviews a completed job (public name, published)" "$(echo $rv | jq_ "(d['doc']['authorName'], d['doc']['status'])")" "('Asha', 'published')"
+check "only one review per job" "$(code_ -b $T/neeze-ckA -X POST $B/api/reviews -H "$J" -d "{\"request\":$rid2,\"rating\":1}")" "400"
+check "public sees the review but not who wrote it" "$(curl -gs "$B/api/reviews/$rvid?depth=0" | jq_ "('customer' in d, d['rating'])")" "(False, 5)"
+check "provider rating count goes up by one" "$(curl -gs "$B/api/providers/$pid?depth=0" | jq_ "d['ratingCount']")" "$((rc0+1))"
+check "owner is notified of the review" "$(curl -gs -b $T/neeze-ckB "$B/api/notifications?where[kind][equals]=new-review&limit=1" | jq_ "d['docs'][0]['data']['rating']")" "5"
+check "customer cannot edit or hide a review via API" "$(code_ -b $T/neeze-ckA -X PATCH $B/api/reviews/$rvid -H "$J" -d '{"rating":1,"status":"hidden"}')" "403"
+check "owner replies once" "$(curl -gs -b $T/neeze-ckB -X PATCH "$B/api/reviews/$rvid?depth=0" -H "$J" -d '{"reply":"Thank you!","rating":1}' | jq_ "(d['doc']['reply'], d['doc']['rating'])")" "('Thank you!', 5)"
+check "owner cannot reply twice" "$(code_ -b $T/neeze-ckB -X PATCH $B/api/reviews/$rvid -H "$J" -d '{"reply":"again"}')" "400"
+check "report accepted" "$(curl -gs -b $T/neeze-ckA -X POST $B/api/reviews/$rvid/report | jq_ "d['ok']")" "True"
+check "same person reporting twice counts once" "$(curl -gs -b $T/neeze-ckA -X POST $B/api/reviews/$rvid/report | jq_ "d.get('already')")" "True"
+check "account page loads after reviewing" "$(code_ -b $T/neeze-ckA $B/me)" "200"
+check "dashboard reviews tab loads" "$(code_ -b $T/neeze-ckB "$B/provider?tab=reviews")" "200"
+n=$(curl -gs -b NEXT_LOCALE=en $B/p/$pid | grep -c 'Came on time and fixed it'); check "review shows on the provider page" "$([ $n -gt 0 ] && echo yes)" "yes"
+KEY3=testkey3-$(date +%s%N)
+check "request type is set by the listing, not the browser" "$(curl -gs -b $T/neeze-ckA -X POST $B/api/requests/submit -H "$J" -d "{\"idempotencyKey\":\"$KEY3\",\"kind\":\"appointment\",\"provider\":$pid,\"locality\":$lid,\"description\":\"Check wiring\",\"contactName\":\"Asha\",\"contactPhone\":\"$PA\"}" | jq_ "d['id']" | xargs -I{} curl -gs -b $T/neeze-ckA "$B/api/requests/{}?depth=0" | jq_ "d['kind']")" "service"
+
 curl -gs -o /dev/null -X PATCH $B/api/providers/$pid -H "$J" -H "Authorization: JWT $TOK" -d '{"owners":[]}'
 
 # --- sign-out ---

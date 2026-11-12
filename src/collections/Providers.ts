@@ -12,6 +12,11 @@ export const PROVIDER_TYPES = [
   { label: 'Clinic', value: 'clinic' },
   { label: 'Hospital', value: 'hospital' },
   { label: 'Diagnostic centre', value: 'diagnostic' },
+  // P1 verticals
+  { label: 'School / institute', value: 'school' },
+  { label: 'Gym / fitness centre', value: 'gym' },
+  { label: 'Hotel', value: 'hotel' },
+  { label: 'Bus operator', value: 'bus-operator' },
 ] as const
 
 /**
@@ -150,6 +155,15 @@ export const Providers: CollectionConfig = {
       type: 'date',
       admin: { position: 'sidebar', description: 'When contact details were last confirmed.' },
       access: { create: staffFieldOnly, update: staffFieldOnly },
+    },
+    {
+      // Kept in step with published reviews by the Reviews collection; never edited by hand.
+      type: 'row',
+      admin: { position: 'sidebar' },
+      fields: [
+        { name: 'ratingAvg', type: 'number', admin: { readOnly: true }, access: { create: () => false, update: () => false } },
+        { name: 'ratingCount', type: 'number', defaultValue: 0, admin: { readOnly: true }, access: { create: () => false, update: () => false } },
+      ],
     },
     { name: 'searchText', type: 'text', index: true, admin: { hidden: true }, access: { update: () => false, create: () => false } },
   ],
