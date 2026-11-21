@@ -83,6 +83,7 @@ export const News: CollectionConfig = {
       ],
       admin: { position: 'sidebar' },
     },
+    { name: 'byline', type: 'text', defaultValue: 'Neeze Editor', admin: { position: 'sidebar', description: 'Shown under the headline.' } },
     {
       name: 'featured',
       label: 'Pin as top story',

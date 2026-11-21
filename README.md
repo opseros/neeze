@@ -123,6 +123,17 @@ Admin → Reviews. Sort by *Report count*. A review reported by 3 different peop
 - **Temporary change** (floods, festivals, elections, a campaign): in the same place tick *Turn on*, set *Until* (and *From* to schedule ahead), then choose another page and/or a **spotlight banner**: headline, short text, optional wide photo, button (a site path like `/emergency` or an `https://` link) and tone (*Alert* is red). Fill the headline and text in each language using the locale switch at the top of the admin. After *Until* the site switches back by itself; untick *Turn on* to end it early.
 - For a one-line notice on every page, use *Alert banner* instead.
 
+## Importing drafted news
+
+Stories written outside the admin (for example by an editor or an AI drafting step) go in `data/news-drafts-*.json` (see the example file) and are imported as **drafts**:
+
+```powershell
+# same DATABASE_URL / PAYLOAD_SECRET / SESSION_SECRET as Vercel, NODE_ENV=production
+npm.cmd run import-news
+```
+
+Nothing goes live until an editor opens each draft in Admin → News, checks it against its sources, adds a photo and presses **Publish**. Stories that already exist (same slug) are skipped. Each story has a *Byline* (default "Neeze Editor").
+
 ## Moderating the community
 
 Admin → **Community**:

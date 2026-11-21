@@ -594,6 +594,10 @@ export interface News {
   publishedAt?: string | null;
   section?: ('local' | 'civic' | 'health' | 'education' | 'transport' | 'events' | 'business' | 'alerts') | null;
   /**
+   * Shown under the headline.
+   */
+  byline?: string | null;
+  /**
    * Shown as the lead story on the front page. If several are pinned, the newest wins; otherwise the newest story leads.
    */
   featured?: boolean | null;
@@ -1053,6 +1057,7 @@ export interface NewsSelect<T extends boolean = true> {
   image?: T;
   publishedAt?: T;
   section?: T;
+  byline?: T;
   featured?: T;
   sources?:
     | T

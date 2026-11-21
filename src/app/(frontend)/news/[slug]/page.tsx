@@ -41,6 +41,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
             <h1 className="mt-4 font-news text-[2rem] font-bold leading-[1.15] tracking-tight text-ink md:text-5xl">{n.title}</h1>
             {n.summary && <p className="mt-4 text-lg leading-relaxed text-muted md:text-xl">{n.summary}</p>}
             <p className="mt-4 text-sm text-muted">
+              {n.byline && <span className="mr-3 font-semibold text-ink">{n.byline}</span>}
               {n.publishedAt && <time dateTime={n.publishedAt}>{fmt(n.publishedAt)}</time>}
               {updated && <span className="ml-3">{t('updated', { date: fmt(n.updatedAt) })}</span>}
             </p>

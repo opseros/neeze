@@ -14,7 +14,8 @@
     "generate:types": "payload generate:types",
     "migrate:create": "payload migrate:create",
     "migrate": "payload migrate",
-    "vercel-build": "payload migrate && next build --webpack"
+    "vercel-build": "payload migrate && next build --webpack",
+    "import-news": "payload run src/seed/import-news.ts"
   },
   "engines": {
     "node": ">=20.9"

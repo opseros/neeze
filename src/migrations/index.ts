@@ -8,6 +8,7 @@ import * as migration_20261112_115900_manipuri_names from './20261112_115900_man
 import * as migration_20261112_123730_community from './20261112_123730_community';
 import * as migration_20261121_014904_analytics from './20261121_014904_analytics';
 import * as migration_20261121_022031_news_sections_landing from './20261121_022031_news_sections_landing';
+import * as migration_20261121_023606_news_byline from './20261121_023606_news_byline';
 
 export const migrations = [
   {
@@ -58,6 +59,11 @@ export const migrations = [
   {
     up: migration_20261121_022031_news_sections_landing.up,
     down: migration_20261121_022031_news_sections_landing.down,
-    name: '20261121_022031_news_sections_landing'
+    name: '20261121_022031_news_sections_landing',
+  },
+  {
+    up: migration_20261121_023606_news_byline.up,
+    down: migration_20261121_023606_news_byline.down,
+    name: '20261121_023606_news_byline'
   },
 ];
