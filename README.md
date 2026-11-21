@@ -27,6 +27,9 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 | P1 listings: schools, gyms, hotels, bus operators with an enquiry flow; switch each category on in Admin → Categories | Done |
 | Community: posts with optional photo by topic and area, comments, "helpful", report, block; new members' first post reviewed (Admin setting); rules page; 5 posts / 30 comments / 20 reports a day | Done |
 | One report queue (Admin → Community → Reports & corrections) for posts, comments, news corrections and wrong listing details; reporter is told the outcome | Done |
+| Landing page = news front page (top story, more news by section, services search, emergency numbers, community); services home at `/directory` | Done |
+| Admin → Site settings → Landing page: choose News, Services or Community; temporary change for set dates (another page and/or a spotlight banner) that switches back by itself | Done |
+| News sections (Local, Civic & utilities, Health, Education, Traffic & transport, Events, Business, Alerts), Pin as top story, section pages, related stories, headline serif (Noto Serif Bengali / Noto Serif) | Done |
 | Insights for staff (`/insights`, linked from the admin dashboard): no-result searches, listing views, call/WhatsApp taps, request conversion, provider answer rate within 24 h and slow providers, completion and reviews, moderation backlog | Done |
 | Anonymous usage events: no account, IP, cookie or device ID; Do Not Track respected; phone numbers masked in searches; kept 400 days | Done |
 | Server error alerts by email (`ALERT_EMAIL`), `/healthz` for uptime monitors, GitHub Actions CI, backup restore runbook (DEPLOY.md) | Done |
@@ -52,7 +55,7 @@ In dev, sign-in and mobile codes are printed in the server log and shown on scre
 
 ```bash
 npm test                                  # unit tests: roles, status transitions, search text, phones, session, OTP
-BASE=http://localhost:3000 scripts/smoke-test.sh   # 129 API checks against a running dev server seeded with demo data
+BASE=http://localhost:3000 scripts/smoke-test.sh   # 141 API checks against a running dev server seeded with demo data
 ```
 
 The smoke test covers community (review queue, privacy of authors, reports, auto-hide, blocks, restrictions, limits, photo ownership), all four languages, reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
@@ -90,6 +93,9 @@ src/
   lib/alerts.ts              error alert emails; wired in src/instrumentation.ts
   app/(frontend)/insights/   staff KPI page
   components/tracker.tsx     anonymous usage beacon
+  components/news-front.tsx  news front page, spotlight banner, story layouts
+  components/directory-home.tsx  services home (/directory)
+  lib/landing.ts             which landing page / spotlight is live (unit tested)
   app/(frontend)/community/  feed, post, write/edit, rules
   lib/                       search, text normalisation, session cookie, OTP, status machine, IndexedDB, R2 storage
   app/(frontend)/            the PWA screens
@@ -109,6 +115,13 @@ scripts/                     smoke test, icon generator
 ## Moderating reviews
 
 Admin → Reviews. Sort by *Report count*. A review reported by 3 different people is hidden automatically until you look at it; set *Status* back to *published* if it's fair. Hiding or deleting a review updates the provider's rating straight away.
+
+## Front page and temporary changes
+
+- **Top story:** Admin → News → a story → *Pin as top story*. If several are pinned, the newest leads; with none pinned, the newest story leads. Give each story a *Section* and a wide photo (it's cropped to 16:9 on the front page).
+- **Landing page:** Admin → Site settings → *Landing page*: News front page (default), Services directory, or Community.
+- **Temporary change** (floods, festivals, elections, a campaign): in the same place tick *Turn on*, set *Until* (and *From* to schedule ahead), then choose another page and/or a **spotlight banner**: headline, short text, optional wide photo, button (a site path like `/emergency` or an `https://` link) and tone (*Alert* is red). Fill the headline and text in each language using the locale switch at the top of the admin. After *Until* the site switches back by itself; untick *Turn on* to end it early.
+- For a one-line notice on every page, use *Alert banner* instead.
 
 ## Moderating the community
 

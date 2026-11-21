@@ -336,6 +336,14 @@ export interface Media {
       filesize?: number | null;
       filename?: string | null;
     };
+    hero?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
   };
 }
 /**
@@ -584,6 +592,11 @@ export interface News {
   } | null;
   image?: (number | null) | Media;
   publishedAt?: string | null;
+  section?: ('local' | 'civic' | 'health' | 'education' | 'transport' | 'events' | 'business' | 'alerts') | null;
+  /**
+   * Shown as the lead story on the front page. If several are pinned, the newest wins; otherwise the newest story leads.
+   */
+  featured?: boolean | null;
   sources?:
     | {
         label: string;
@@ -1039,6 +1052,8 @@ export interface NewsSelect<T extends boolean = true> {
   body?: T;
   image?: T;
   publishedAt?: T;
+  section?: T;
+  featured?: T;
   sources?:
     | T
     | {
@@ -1091,6 +1106,16 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
         card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        hero?:
           | T
           | {
               url?: T;
@@ -1265,6 +1290,37 @@ export interface SiteSetting {
     | null;
   supportPhone?: string | null;
   grievanceEmail?: string | null;
+  /**
+   * What people see first at neeze.opseros.com.
+   */
+  landing?: {
+    defaultPage?: ('news' | 'directory' | 'community') | null;
+    /**
+     * For floods, festivals, elections or a campaign. Switches back by itself after "Until".
+     */
+    temporary?: {
+      active?: boolean | null;
+      /**
+       * Leave empty to start now.
+       */
+      from?: string | null;
+      until?: string | null;
+      page?: ('same' | 'news' | 'directory' | 'community') | null;
+      showSpotlight?: boolean | null;
+      headline?: string | null;
+      text?: string | null;
+      /**
+       * Optional. A wide photo works best.
+       */
+      image?: (number | null) | Media;
+      buttonLabel?: string | null;
+      /**
+       * A page on this site like /emergency, or an https:// link.
+       */
+      buttonLink?: string | null;
+      tone?: ('navy' | 'teal' | 'alert') | null;
+    };
+  };
   community?: {
     /**
      * Posts with several links always wait for review. Reported posts hide themselves after 3 reports.
@@ -1296,6 +1352,26 @@ export interface SiteSettingsSelect<T extends boolean = true> {
       };
   supportPhone?: T;
   grievanceEmail?: T;
+  landing?:
+    | T
+    | {
+        defaultPage?: T;
+        temporary?:
+          | T
+          | {
+              active?: T;
+              from?: T;
+              until?: T;
+              page?: T;
+              showSpotlight?: T;
+              headline?: T;
+              text?: T;
+              image?: T;
+              buttonLabel?: T;
+              buttonLink?: T;
+              tone?: T;
+            };
+      };
   community?:
     | T
     | {

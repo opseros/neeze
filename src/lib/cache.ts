@@ -50,8 +50,8 @@ export const getActiveVerticals = unstable_cache(
 )
 
 export const getSettingsCached = unstable_cache(
-  async (locale: Locale): Promise<SiteSetting> => (await payload()).findGlobal({ slug: 'site-settings', locale, depth: 0 }),
-  ['settings-v1'],
+  async (locale: Locale): Promise<SiteSetting> => (await payload()).findGlobal({ slug: 'site-settings', locale, depth: 1 }),
+  ['settings-v2'],
   { tags: [TAGS.settings], revalidate: 24 * HOUR },
 )
 
@@ -289,4 +289,42 @@ export const getCommentsCached = unstable_cache(
   },
   ['community-comments-v1'],
   { tags: [TAGS.community], revalidate: HOUR },
+)
+
+/* ---------- News front page ---------- */
+
+const NEWS_PUBLISHED: Where = { _status: { equals: 'published' } }
+
+/** Lead story (newest pinned, else newest) and the next stories, for the front page. */
+export const getNewsFrontCached = unstable_cache(
+  async (locale: Locale): Promise<{ lead: News | null; rest: News[] }> => {
+    const p = await payload()
+    const [pinned, latest] = await Promise.all([
+      p.find({ collection: 'news', where: { and: [NEWS_PUBLISHED, { featured: { equals: true } }] }, sort: '-publishedAt', limit: 1, depth: 1, locale, draft: false }),
+      p.find({ collection: 'news', where: NEWS_PUBLISHED, sort: '-publishedAt', limit: 13, depth: 1, locale, draft: false }),
+    ])
+    const lead = (pinned.docs[0] ?? latest.docs[0] ?? null) as News | null
+    return { lead, rest: (latest.docs as News[]).filter((n) => n.id !== lead?.id).slice(0, 12) }
+  },
+  ['news-front-v1'],
+  { tags: [TAGS.news], revalidate: HOUR },
+)
+
+export const getNewsPageCached = unstable_cache(
+  async (locale: Locale, section: string | null, page: number): Promise<{ docs: News[]; totalPages: number; page: number }> => {
+    const where: Where = section ? { and: [NEWS_PUBLISHED, { section: { equals: section } }] } : NEWS_PUBLISHED
+    const r = await (await payload()).find({ collection: 'news', where, sort: '-publishedAt', limit: 13, page, depth: 1, locale, draft: false })
+    return { docs: r.docs as News[], totalPages: r.totalPages, page: r.page ?? 1 }
+  },
+  ['news-page-v1'],
+  { tags: [TAGS.news], revalidate: HOUR },
+)
+
+export const getRelatedNewsCached = unstable_cache(
+  async (locale: Locale, section: string, excludeId: number): Promise<News[]> => {
+    const { docs } = await (await payload()).find({ collection: 'news', where: { and: [NEWS_PUBLISHED, { section: { equals: section } }, { id: { not_equals: excludeId } }] }, sort: '-publishedAt', limit: 4, depth: 1, locale, draft: false })
+    return docs as News[]
+  },
+  ['news-related-v1'],
+  { tags: [TAGS.news], revalidate: HOUR },
 )

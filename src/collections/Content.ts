@@ -24,6 +24,8 @@ export const Media: CollectionConfig = {
     imageSizes: [
       { name: 'thumb', width: 320, formatOptions: { format: 'webp', options: { quality: 70 } } },
       { name: 'card', width: 640, formatOptions: { format: 'webp', options: { quality: 75 } } },
+      // Lead story and spotlight photos on wide screens.
+      { name: 'hero', width: 1280, withoutEnlargement: true, formatOptions: { format: 'webp', options: { quality: 72 } } },
     ],
   },
   fields: [
@@ -31,7 +33,7 @@ export const Media: CollectionConfig = {
     { name: 'uploadedBy', type: 'relationship', relationTo: 'users', index: true, admin: { readOnly: true, position: 'sidebar' }, access: { read: ({ req }) => isStaff(req.user) } },
   ],
   hooks: {
-    ...revalidateHooks('providers', 'news', 'community'),
+    ...revalidateHooks('providers', 'news', 'community', 'settings'),
     beforeChange: [
       ({ data, req, operation }) => {
         if (operation === 'create') return { ...data, uploadedBy: req.user?.id, alt: data.alt || 'Photo' }
@@ -64,6 +66,31 @@ export const News: CollectionConfig = {
     { name: 'body', type: 'richText', localized: true },
     { name: 'image', type: 'upload', relationTo: 'media' },
     { name: 'publishedAt', type: 'date', index: true, admin: { position: 'sidebar' } },
+    {
+      name: 'section',
+      type: 'select',
+      defaultValue: 'local',
+      index: true,
+      options: [
+        { label: 'Local', value: 'local' },
+        { label: 'Civic & utilities (water, power, roads, municipality)', value: 'civic' },
+        { label: 'Health', value: 'health' },
+        { label: 'Education', value: 'education' },
+        { label: 'Traffic & transport', value: 'transport' },
+        { label: 'Events', value: 'events' },
+        { label: 'Business', value: 'business' },
+        { label: 'Alerts (weather, floods, safety)', value: 'alerts' },
+      ],
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'featured',
+      label: 'Pin as top story',
+      type: 'checkbox',
+      defaultValue: false,
+      index: true,
+      admin: { position: 'sidebar', description: 'Shown as the lead story on the front page. If several are pinned, the newest wins; otherwise the newest story leads.' },
+    },
     { name: 'sources', type: 'array', fields: [{ name: 'label', type: 'text', required: true }, { name: 'url', type: 'text' }] },
     {
       name: 'corrections',
@@ -122,6 +149,104 @@ export const SiteSettings: GlobalConfig = {
     },
     { name: 'supportPhone', type: 'text' },
     { name: 'grievanceEmail', type: 'email' },
+    {
+      name: 'landing',
+      label: 'Landing page',
+      type: 'group',
+      admin: { description: 'What people see first at neeze.opseros.com.' },
+      fields: [
+        {
+          name: 'defaultPage',
+          label: 'Landing page',
+          type: 'select',
+          defaultValue: 'news',
+          options: [
+            { label: 'News front page (with services and community alongside)', value: 'news' },
+            { label: 'Services directory', value: 'directory' },
+            { label: 'Community', value: 'community' },
+          ],
+        },
+        {
+          name: 'temporary',
+          label: 'Temporary change',
+          type: 'group',
+          admin: { description: 'For floods, festivals, elections or a campaign. Switches back by itself after "Until".' },
+          fields: [
+            { name: 'active', label: 'Turn on', type: 'checkbox', defaultValue: false },
+            {
+              type: 'row',
+              admin: { condition: (_, s) => Boolean(s?.active) },
+              fields: [
+                { name: 'from', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, description: 'Leave empty to start now.' } },
+                {
+                  name: 'until',
+                  type: 'date',
+                  admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' } },
+                  validate: (v: unknown, { siblingData }: { siblingData: { active?: boolean; from?: string } }) => {
+                    if (!siblingData?.active) return true
+                    if (!v) return 'Set when it ends, so it switches back by itself.'
+                    if (siblingData.from && new Date(v as string) <= new Date(siblingData.from)) return 'Must be after "From".'
+                    return true
+                  },
+                },
+              ],
+            },
+            {
+              name: 'page',
+              label: 'Show this page instead',
+              type: 'select',
+              options: [
+                { label: 'Keep the landing page above', value: 'same' },
+                { label: 'News front page', value: 'news' },
+                { label: 'Services directory', value: 'directory' },
+                { label: 'Community', value: 'community' },
+              ],
+              defaultValue: 'same',
+              admin: { condition: (_, s) => Boolean(s?.active) },
+            },
+            {
+              name: 'showSpotlight',
+              label: 'Show a spotlight banner at the top',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { condition: (_, s) => Boolean(s?.active) },
+            },
+            {
+              type: 'collapsible',
+              label: 'Spotlight banner',
+              admin: { condition: (_, s) => Boolean(s?.active && s?.showSpotlight) },
+              fields: [
+                { name: 'headline', type: 'text', localized: true, maxLength: 90 },
+                { name: 'text', type: 'textarea', localized: true, maxLength: 240 },
+                { name: 'image', type: 'upload', relationTo: 'media', admin: { description: 'Optional. A wide photo works best.' } },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'buttonLabel', type: 'text', localized: true, maxLength: 40, admin: { width: '50%' } },
+                    {
+                      name: 'buttonLink',
+                      type: 'text',
+                      admin: { width: '50%', description: 'A page on this site like /emergency, or an https:// link.' },
+                      validate: (v: unknown) => (!v || /^\/(?!\/)\S*$/.test(String(v)) || /^https:\/\/\S+$/i.test(String(v)) ? true : 'Use a path like /emergency or an https:// link.'),
+                    },
+                  ],
+                },
+                {
+                  name: 'tone',
+                  type: 'select',
+                  defaultValue: 'navy',
+                  options: [
+                    { label: 'Neeze blue', value: 'navy' },
+                    { label: 'Teal (good news, events)', value: 'teal' },
+                    { label: 'Alert (urgent safety information)', value: 'alert' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
     {
       name: 'community',
       type: 'group',

@@ -235,6 +235,30 @@ ins=$(curl -gs -b $T/neeze-ckAdm -H "Sec-Fetch-Site: same-origin" "$B/insights?d
 check "Insights open for staff, empty search listed" "$(echo "$ins" | grep -c "$TQ call #" | awk '{print ($1>0)?"yes":"no"}')$(echo "$ins" | grep -c 'Launch KPIs' | awk '{print ($1>0)?"":"-nokpi"}')" "yes"
 check "health check" "$(curl -gs $B/healthz | jq_ "d['ok']")" "True"
 
+# --- landing page and news ---
+SET() { curl -gs -o /dev/null -w '%{http_code}' -X POST "$B/api/globals/site-settings?locale=en" -H "$J" "${ADM[@]}" -d "$1"; }
+PAST1=$(date -u -d '-3 days' +%Y-%m-%dT%H:%M:%SZ); PAST2=$(date -u -d '-1 day' +%Y-%m-%dT%H:%M:%SZ); SOON=$(date -u -d '+1 day' +%Y-%m-%dT%H:%M:%SZ)
+SET '{"landing":{"defaultPage":"news","temporary":{"active":false}}}' >/dev/null
+check "landing is the news front page by default" "$(curl -gs -b NEXT_LOCALE=en $B/ | grep -c 'id="rail-q"' | awk '{print ($1>0)?"news":"other"}')" "news"
+SET '{"landing":{"defaultPage":"directory","temporary":{"active":false}}}' >/dev/null
+check "admin switches landing to the services directory" "$(curl -gs -b NEXT_LOCALE=en $B/ | grep -c 'silchar-hero' | awk '{print ($1>0)?"directory":"other"}')" "directory"
+SET "{\"landing\":{\"defaultPage\":\"directory\",\"temporary\":{\"active\":true,\"until\":\"$SOON\",\"page\":\"community\",\"showSpotlight\":true,\"headline\":\"Spotlight $R\",\"buttonLabel\":\"Go\",\"buttonLink\":\"/emergency\",\"tone\":\"alert\"}}}" >/dev/null
+home=$(curl -gs -b NEXT_LOCALE=en $B/)
+check "temporary change shows community" "$(echo "$home" | grep -c 'Ask neighbours' | awk '{print ($1>0)?"community":"other"}')" "community"
+check "spotlight banner shown" "$(echo "$home" | grep -c "Spotlight $R" | awk '{print ($1>0)?"yes":"no"}')" "yes"
+SET "{\"landing\":{\"temporary\":{\"active\":true,\"from\":\"$PAST1\",\"until\":\"$PAST2\",\"page\":\"community\"}}}" >/dev/null
+check "after its dates, landing switches back by itself" "$(curl -gs -b NEXT_LOCALE=en $B/ | grep -c 'silchar-hero' | awk '{print ($1>0)?"directory":"other"}')" "directory"
+check "temporary change needs an end date" "$(SET '{"landing":{"temporary":{"active":true,"until":null}}}')" "400"
+check "spotlight button refuses unsafe links" "$(SET "{\"landing\":{\"temporary\":{\"active\":true,\"until\":\"$SOON\",\"buttonLink\":\"javascript:alert(1)\"}}}")" "400"
+check "customers cannot change the landing page" "$(code_ -b $T/neeze-ckB -X POST "$B/api/globals/site-settings" -H "$J" -d '{"landing":{"defaultPage":"community"}}')" "403"
+SET '{"landing":{"defaultPage":"news","temporary":{"active":false}}}' >/dev/null
+nid=$(curl -gs -X POST "$B/api/news?locale=en" -H "$J" "${ADM[@]}" -d "{\"title\":\"Test story $R\",\"summary\":\"Sample\",\"section\":\"civic\",\"featured\":true,\"_status\":\"published\",\"publishedAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" | jq_ "d['doc']['slug']")
+check "pinned story leads the front page" "$(curl -gs -b NEXT_LOCALE=en $B/ | grep -o 'Test story [0-9]*' | head -1)" "Test story $R"
+check "news section page" "$(curl -gs -b NEXT_LOCALE=en "$B/news?section=civic" | grep -c "Test story $R" | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "article page" "$(code_ $B/news/$nid)" "200"
+check "services directory page" "$(code_ $B/directory)" "200"
+curl -gs -o /dev/null -X PATCH "$B/api/news/$(curl -gs "$B/api/news?where[slug][equals]=$nid&depth=0" | jq_ "d['docs'][0]['id']")" -H "$J" "${ADM[@]}" -d '{"featured":false}'
+
 # --- sign-out ---
 curl -gs -b $T/neeze-ckA -c $T/neeze-ckA -o /dev/null -X POST $B/auth/logout
 check "sign-out clears session" "$(curl -gs -b $T/neeze-ckA $B/auth/me | jq_ "d['user']")" "None"

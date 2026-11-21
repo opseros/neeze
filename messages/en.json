@@ -215,7 +215,29 @@
     "title": "Local news",
     "empty": "No news yet.",
     "corrections": "Corrections",
-    "updated": "Updated {date}"
+    "updated": "Updated {date}",
+    "sections": {
+      "local": "Local",
+      "civic": "Civic & utilities",
+      "health": "Health",
+      "education": "Education",
+      "transport": "Traffic & transport",
+      "events": "Events",
+      "business": "Business",
+      "alerts": "Alerts"
+    },
+    "allSections": "All news",
+    "topStory": "Top story",
+    "moreNews": "More news",
+    "seeAllNews": "All news",
+    "related": "More in {section}",
+    "noNews": "No news yet. Local updates from Neeze editors will appear here.",
+    "sources": "Sources",
+    "findHelp": "Find local help",
+    "findHelpHint": "Electricians, plumbers, doctors, clinics and shops across Silchar.",
+    "browseServices": "Browse all services",
+    "masthead": "Silchar",
+    "pages": "Pages"
   },
   "offline": {
     "title": "You are offline",

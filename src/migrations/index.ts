@@ -7,6 +7,7 @@ import * as migration_20261112_115739_manipuri_locales from './20261112_115739_m
 import * as migration_20261112_115900_manipuri_names from './20261112_115900_manipuri_names';
 import * as migration_20261112_123730_community from './20261112_123730_community';
 import * as migration_20261121_014904_analytics from './20261121_014904_analytics';
+import * as migration_20261121_022031_news_sections_landing from './20261121_022031_news_sections_landing';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20261121_014904_analytics.up,
     down: migration_20261121_014904_analytics.down,
-    name: '20261121_014904_analytics'
+    name: '20261121_014904_analytics',
+  },
+  {
+    up: migration_20261121_022031_news_sections_landing.up,
+    down: migration_20261121_022031_news_sections_landing.down,
+    name: '20261121_022031_news_sections_landing'
   },
 ];

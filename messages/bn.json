@@ -215,7 +215,29 @@
     "title": "স্থানীয় খবর",
     "empty": "এখনও কোনো খবর নেই।",
     "corrections": "সংশোধন",
-    "updated": "হালনাগাদ {date}"
+    "updated": "হালনাগাদ {date}",
+    "sections": {
+      "local": "স্থানীয়",
+      "civic": "নাগরিক পরিষেবা",
+      "health": "স্বাস্থ্য",
+      "education": "শিক্ষা",
+      "transport": "যানবাহন ও যাতায়াত",
+      "events": "অনুষ্ঠান",
+      "business": "ব্যবসা",
+      "alerts": "সতর্কতা"
+    },
+    "allSections": "সব খবর",
+    "topStory": "প্রধান খবর",
+    "moreNews": "আরও খবর",
+    "seeAllNews": "সব খবর",
+    "related": "{section} বিভাগে আরও",
+    "noNews": "এখনও কোনো খবর নেই। Neeze সম্পাদকদের স্থানীয় খবর এখানে দেখা যাবে।",
+    "sources": "সূত্র",
+    "findHelp": "স্থানীয় সাহায্য খুঁজুন",
+    "findHelpHint": "শিলচর জুড়ে ইলেকট্রিশিয়ান, প্লাম্বার, ডাক্তার, ক্লিনিক ও দোকান।",
+    "browseServices": "সব পরিষেবা দেখুন",
+    "masthead": "শিলচর",
+    "pages": "পাতা"
   },
   "offline": {
     "title": "আপনি অফলাইনে আছেন",
