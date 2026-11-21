@@ -31,6 +31,10 @@ export function r2StoragePlugin(): Plugin {
       region: 'auto',
       credentials: { accessKeyId, secretAccessKey },
       forcePathStyle: true,
+      // AWS SDK 3.7xx+ adds CRC32 checksums to every request by default. Browser uploads with
+      // signed URLs don't send that checksum, and R2 then refuses them. Only checksum when required.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     },
     // Phones upload big photos; Vercel caps request bodies at about 4.5 MB,
     // so the browser uploads straight to R2 with a short-lived signed URL.
