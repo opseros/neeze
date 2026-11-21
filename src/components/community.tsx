@@ -1,6 +1,6 @@
 'use client'
 
-import { Flag, ImagePlus, MoreHorizontal, Pencil, ThumbsUp, Trash2, UserX, X } from 'lucide-react'
+import { Flag, ImagePlus, MoreHorizontal, Pencil, Share2, ThumbsUp, Trash2, UserX, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -36,7 +36,7 @@ function useSignInRedirect() {
 
 /* ---------- Helpful ---------- */
 
-export function HelpfulButton({ postId, initial, count: initialCount, signedIn }: { postId: number; initial: boolean; count: number; signedIn: boolean }) {
+export function HelpfulButton({ postId, initial, count: initialCount, signedIn, compact = false }: { postId: number; initial: boolean; count: number; signedIn: boolean; compact?: boolean }) {
   const t = useTranslations('community')
   const [on, setOn] = useState(initial)
   const [count, setCount] = useState(initialCount)
@@ -61,9 +61,46 @@ export function HelpfulButton({ postId, initial, count: initialCount, signedIn }
     }
   }
   return (
-    <button type="button" onClick={toggle} disabled={busy} aria-pressed={on} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium ${on ? 'border-brand-teal bg-brand-teal/10 text-brand-navy' : 'border-line text-muted hover:text-ink'}`}>
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={busy}
+      aria-pressed={on}
+      className={
+        compact
+          ? `inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium hover:bg-surface ${on ? 'text-brand-teal' : 'text-muted hover:text-ink'}`
+          : `inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium ${on ? 'border-brand-teal bg-brand-teal/10 text-brand-navy' : 'border-line text-muted hover:text-ink'}`
+      }
+    >
       <ThumbsUp className={`size-4 ${on ? 'fill-brand-teal/30 text-brand-teal' : ''}`} aria-hidden />
-      {count > 0 ? t('helpfulCount', { count }) : t('helpful')}
+      {compact ? (count > 0 ? `${t('helpful')} · ${count}` : t('helpful')) : count > 0 ? t('helpfulCount', { count }) : t('helpful')}
+    </button>
+  )
+}
+
+/* ---------- Share ---------- */
+
+/** The phone's share sheet (WhatsApp, Messenger…) where there is one; otherwise copy the link. */
+export function ShareButton({ path, title, className = '' }: { path: string; title: string; className?: string }) {
+  const t = useTranslations('community')
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted hover:bg-surface hover:text-ink ${className}`}
+      onClick={async () => {
+        const url = new URL(path, window.location.origin).toString()
+        const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
+        if (nav.share) {
+          await nav.share({ title, url }).catch(() => null)
+          return
+        }
+        await navigator.clipboard?.writeText(url).catch(() => null)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }}
+    >
+      <Share2 className="size-4" aria-hidden /> {copied ? t('linkCopied') : t('share')}
     </button>
   )
 }
@@ -261,13 +298,13 @@ export function CommentForm({ postId }: { postId: number }) {
         setError(t(`errors.${KNOWN_ERRORS.includes(code) ? code : 'generic'}` as 'errors.generic'))
       }}
     >
-      <label htmlFor="comment" className="sr-only">
+      <label htmlFor="comment-body" className="sr-only">
         {t('commentPlaceholder')}
       </label>
-      <textarea id="comment" value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={3} placeholder={t('commentPlaceholder')} className="input min-h-20" />
+      <textarea id="comment-body" value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={2} placeholder={t('commentAs')} className="min-h-[52px] w-full resize-y rounded-2xl border border-line bg-white px-4 py-3 text-[15px] outline-none focus-visible:border-brand-blue focus-visible:ring-2 focus-visible:ring-brand-blue/30" />
       {error && <p className="text-sm text-red-700">{error}</p>}
       <div>
-        <button type="submit" disabled={busy || !body.trim()} className="btn-primary h-10 px-5 text-sm disabled:opacity-50">
+        <button type="submit" disabled={busy || !body.trim()} className="btn-primary h-9 rounded-full px-5 text-sm disabled:opacity-40">
           {t('commentSubmit')}
         </button>
       </div>
@@ -284,6 +321,7 @@ type PostFormProps = {
   reviewNotice?: string
   initial?: { id: number; body: string; topic: string; locality: number | null; image: { id: number; url: string } | null }
   defaultLocality?: number | null
+  defaultTopic?: string
 }
 
 /** Phones take 4–12 MB photos; shrink to ≤1600 px JPEG before upload so it's quick on mobile data. */
@@ -297,11 +335,11 @@ async function shrink(file: File): Promise<Blob> {
   return new Promise((ok, fail) => canvas.toBlob((b) => (b ? ok(b) : fail(new Error('encode'))), 'image/jpeg', 0.82))
 }
 
-export function PostForm({ localities, topics, reviewNotice, initial, defaultLocality }: PostFormProps) {
+export function PostForm({ localities, topics, reviewNotice, initial, defaultLocality, defaultTopic }: PostFormProps) {
   const t = useTranslations('community')
   const router = useRouter()
   const redirect = useSignInRedirect()
-  const [topic, setTopic] = useState(initial?.topic ?? 'question')
+  const [topic, setTopic] = useState(initial?.topic ?? defaultTopic ?? 'question')
   const [locality, setLocality] = useState<string>(String(initial?.locality ?? defaultLocality ?? ''))
   const [body, setBody] = useState(initial?.body ?? '')
   const [image, setImage] = useState<{ id?: number; url: string; blob?: Blob } | null>(initial?.image ?? null)

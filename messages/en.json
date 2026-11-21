@@ -529,7 +529,19 @@
     "rulesContact": "Questions or complaints: use Report on any post, or write to <mail>{email}</mail>.",
     "rulesContactNoEmail": "Questions or complaints: use Report on any post, or contact Neeze support.",
     "official": "Official Neeze account",
-    "pinned": "Pinned"
+    "pinned": "Pinned",
+    "composerPrompt": "Ask your neighbours, share a tip or a recommendation…",
+    "quickAsk": "Ask",
+    "quickRecommend": "Recommend",
+    "quickLost": "Lost & found",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "seeMore": "See more",
+    "popularTitle": "Popular this week",
+    "popularEmpty": "Posts that neighbours find helpful show up here.",
+    "commentAs": "Add a comment",
+    "noComments": "No comments yet. Start the conversation.",
+    "inArea": "in {area}"
   },
   "report": {
     "button": "Report",

@@ -334,3 +334,21 @@ export const getRelatedNewsCached = unstable_cache(
   ['news-related-v1'],
   { tags: [TAGS.news], revalidate: HOUR },
 )
+
+/** Most helpful and discussed posts of the last 7 days, for the community sidebar. */
+export const getPopularPostsCached = unstable_cache(
+  async (locale: Locale): Promise<PostView[]> => {
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString()
+    const { docs } = await (await payload()).find({
+      collection: 'posts',
+      where: { and: [{ status: { equals: 'published' } }, { createdAt: { greater_than: since } }, { or: [{ helpfulCount: { greater_than: 0 } }, { commentCount: { greater_than: 0 } }] }] },
+      sort: ['-helpfulCount', '-commentCount'],
+      limit: 5,
+      depth: 0,
+      locale,
+    })
+    return (docs as Post[]).map((d) => toPostView(d, locale))
+  },
+  ['community-popular-v1'],
+  { tags: [TAGS.community], revalidate: HOUR },
+)

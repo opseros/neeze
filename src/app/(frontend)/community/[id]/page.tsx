@@ -1,10 +1,10 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 
-import { CommentForm, HelpfulButton, ItemMenu, ReportButton } from '@/components/community'
-import { PostMeta, TopicChip } from '@/components/community-view'
+import { CommentForm, HelpfulButton, ItemMenu, ReportButton, ShareButton } from '@/components/community'
+import { Avatar, PostMeta, TopicChip } from '@/components/community-view'
 import { Container } from '@/components/ui'
 import { canEditPost } from '@/lib/community'
 import { getCommentsCached, getPostCached, type PostView, toPostView } from '@/lib/cache'
@@ -45,74 +45,98 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const tmode = translateMode()
 
   return (
-    <Container className="max-w-3xl py-6 md:py-10">
-      <Link href="/community" className="inline-flex items-center gap-1 text-sm font-medium text-brand-blue">
+    <Container className="max-w-2xl py-5 md:py-10">
+      <Link href="/community" className="inline-flex items-center gap-1 text-sm font-medium text-brand-blue hover:underline">
         <ArrowLeft className="size-4" aria-hidden /> {t('title')}
       </Link>
 
-      <article className="card mt-4 grid gap-4 md:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div className="grid gap-2">
+      <article className="mt-4 rounded-2xl border border-line bg-white">
+        <div className="flex items-start justify-between gap-3 p-4 pb-0 md:p-6 md:pb-0">
+          <PostMeta post={post} />
+          <div className="flex shrink-0 items-center gap-1">
             <TopicChip topic={post.topic} />
-            <PostMeta post={post} />
+            <ItemMenu kind="post" id={post.id} mine={mine} canEdit={canEditPost(post)} signedIn={signedIn} />
           </div>
-          <ItemMenu kind="post" id={post.id} mine={mine} canEdit={canEditPost(post)} signedIn={signedIn} />
         </div>
-        {post.status === 'pending' && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">{t('pending')} · {t('pendingNote')}</p>}
-        {post.status === 'hidden' && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">{t('hiddenNote')}</p>}
-        <Translatable kind="post" id={post.id} mode={tmode} text={post.body} offer={needsTranslation(post.body, locale)} className="text-lg text-ink">
-          <p className="whitespace-pre-line text-lg leading-relaxed text-ink">{post.body}</p>
-        </Translatable>
-        {post.image && (
-          <a href={post.image.url} target="_blank" rel="noopener">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={post.image.card} alt="" className="max-h-[480px] w-full rounded-xl object-cover" />
-          </a>
-        )}
-        {post.status === 'published' && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-            <HelpfulButton postId={post.id} initial={Boolean(me && post.helpfulBy.includes(me))} count={post.helpfulCount} signedIn={signedIn} />
-            {!mine && <ReportButton target="post" id={post.id} signedIn={signedIn} />}
+        {post.status === 'pending' && <p className="mx-4 mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950 md:mx-6">{t('pending')} · {t('pendingNote')}</p>}
+        {post.status === 'hidden' && <p className="mx-4 mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950 md:mx-6">{t('hiddenNote')}</p>}
+        <div className="px-4 pt-4 md:px-6">
+          <Translatable kind="post" id={post.id} mode={tmode} text={post.body} offer={needsTranslation(post.body, locale)} className="text-[17px] text-ink">
+            <p className="whitespace-pre-line text-[17px] leading-relaxed text-ink">{post.body}</p>
+          </Translatable>
+          {post.image && (
+            <a href={post.image.url} target="_blank" rel="noopener" className="mt-4 block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.image.card} alt="" className="max-h-[520px] w-full rounded-xl object-cover" />
+            </a>
+          )}
+        </div>
+        {post.status === 'published' ? (
+          <div className="mt-4 flex items-center gap-1 border-t border-line px-2 py-1.5 md:px-4">
+            <HelpfulButton postId={post.id} initial={Boolean(me && post.helpfulBy.includes(me))} count={post.helpfulCount} signedIn={signedIn} compact />
+            <a href="#comment" className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted hover:bg-surface hover:text-ink">
+              <MessageCircle className="size-4" aria-hidden /> {t('commentSubmit')}
+            </a>
+            <ShareButton path={`/community/${post.id}`} title={post.body.slice(0, 80)} />
+            {!mine && <ReportButton target="post" id={post.id} signedIn={signedIn} className="ml-auto h-9 px-3" />}
           </div>
+        ) : (
+          <div className="h-4" />
         )}
       </article>
 
       {post.status === 'published' && (
-        <section id="comments" className="mt-6 grid gap-4" aria-labelledby="comments-title">
-          <h2 id="comments-title" className="text-lg font-semibold">
+        <section id="comments" className="mt-6" aria-labelledby="comments-title">
+          <h2 id="comments-title" className="text-base font-semibold">
             {t('commentsTitle')} <span className="font-normal text-muted">· {comments.length}</span>
           </h2>
+
+          {comments.length === 0 && <p className="mt-2 text-sm text-muted">{t('noComments')}</p>}
           {comments.length > 0 && (
-            <ul className="grid gap-3">
+            <ul className="mt-3 grid gap-4">
               {comments.map((c) => (
-                <li key={c.id} id={`c${c.id}`} className="rounded-xl border border-line bg-white p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm text-muted">
-                      <span className="font-semibold text-ink">{c.authorName}</span> · {relativeTime(c.createdAt, locale)}
-                    </p>
-                    <ItemMenu kind="comment" id={c.id} mine={Boolean(me && c.authorId === me)} signedIn={signedIn} />
-                  </div>
-                  <Translatable kind="comment" id={c.id} mode={tmode} text={c.body} offer={needsTranslation(c.body, locale)} className="mt-1">
-                    <p className="whitespace-pre-line">{c.body}</p>
-                  </Translatable>
-                  {me && c.authorId !== me && (
-                    <div className="mt-2">
-                      <ReportButton target="comment" id={c.id} signedIn={signedIn} />
+                <li key={c.id} id={`c${c.id}`} className="flex gap-3">
+                  <Avatar name={c.authorName} official={c.authorName === 'Neeze Team'} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <div className="rounded-2xl rounded-tl-md bg-white px-4 py-2.5 ring-1 ring-inset ring-line">
+                      <p className="flex items-baseline justify-between gap-2 text-sm">
+                        <span className="font-semibold text-ink">{c.authorName}</span>
+                        <time dateTime={c.createdAt} className="shrink-0 text-xs text-muted">
+                          {relativeTime(c.createdAt, locale)}
+                        </time>
+                      </p>
+                      <Translatable kind="comment" id={c.id} mode={tmode} text={c.body} offer={needsTranslation(c.body, locale)} className="mt-0.5">
+                        <p className="mt-0.5 whitespace-pre-line text-[15px] leading-relaxed">{c.body}</p>
+                      </Translatable>
                     </div>
-                  )}
+                    {signedIn && (
+                      <div className="mt-1 flex items-center gap-3 pl-2">
+                        {me && c.authorId !== me && <ReportButton target="comment" id={c.id} signedIn={signedIn} className="text-xs" />}
+                        <ItemMenu kind="comment" id={c.id} mine={Boolean(me && c.authorId === me)} signedIn={signedIn} />
+                      </div>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-          {post.commentsLocked ? (
-            <p className="text-sm text-muted">{t('commentsLocked')}</p>
-          ) : signedIn ? (
-            <CommentForm postId={post.id} />
-          ) : (
-            <p className="card text-sm">
-              <Link href={`/signin?next=/community/${post.id}`} className="font-semibold text-brand-blue">{t('signInToJoin')}</Link>
-            </p>
-          )}
+
+          <div id="comment" className="mt-5 scroll-mt-24">
+            {post.commentsLocked ? (
+              <p className="text-sm text-muted">{t('commentsLocked')}</p>
+            ) : signedIn ? (
+              <div className="flex gap-3">
+                <Avatar name={viewer.user?.name} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <CommentForm postId={post.id} />
+                </div>
+              </div>
+            ) : (
+              <Link href={`/signin?next=/community/${post.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-sm font-semibold text-brand-blue hover:border-slate-300">
+                <MessageCircle className="size-5" aria-hidden /> {t('signInToJoin')}
+              </Link>
+            )}
+          </div>
         </section>
       )}
     </Container>

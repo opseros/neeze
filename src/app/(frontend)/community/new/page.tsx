@@ -11,7 +11,8 @@ export async function generateMetadata() {
   return { title: t('newTitle'), robots: { index: false } }
 }
 
-export default async function NewPostPage() {
+export default async function NewPostPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
+  const sp = await searchParams
   const user = await requireUser('/community/new')
   const [t, localities, selected, settings] = await Promise.all([getTranslations('community'), getLocalities(), getSelectedLocality(), getSiteSettings().catch(() => null)])
   const mode = (settings as { community?: { postingMode?: string } } | null)?.community?.postingMode ?? DEFAULT_POSTING_MODE
@@ -31,6 +32,7 @@ export default async function NewPostPage() {
           topics={TOPICS.map((k) => ({ value: k, label: t(`topics.${k}`) }))}
           reviewNotice={notice}
           defaultLocality={selected?.id ?? null}
+          defaultTopic={TOPICS.includes(sp.topic as never) ? sp.topic : undefined}
         />
       </Container>
     </>
