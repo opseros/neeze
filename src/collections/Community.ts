@@ -146,6 +146,14 @@ export const Posts: CollectionConfig = {
       admin: { position: 'sidebar', description: 'pending = waiting for review · hidden = reported or held · removed = breaks the rules' },
     },
     { name: 'commentsLocked', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar' }, access: { create: modField, update: modField } },
+    { name: 'pinned', type: 'checkbox', defaultValue: false, index: true, admin: { position: 'sidebar', description: 'Keep at the top of the community feed.' }, access: { create: modField, update: modField } },
+    {
+      name: 'official',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: { position: 'sidebar', readOnly: true, description: 'Posted by Neeze staff: shown as "Neeze Team" with a badge.' },
+      access: { create: ({ req }) => isStaff(req.user), update: modField },
+    },
     { name: 'commentCount', type: 'number', defaultValue: 0, admin: { position: 'sidebar', readOnly: true } },
     { name: 'helpfulCount', type: 'number', defaultValue: 0, admin: { position: 'sidebar', readOnly: true } },
     { name: 'helpfulBy', type: 'relationship', relationTo: 'users', hasMany: true, admin: { readOnly: true, position: 'sidebar' }, access: { read: modField, update: modField, create: modField } },
@@ -166,7 +174,10 @@ export const Posts: CollectionConfig = {
           const { totalDocs } = await req.payload.count({ collection: 'posts', where: { and: [{ author: { equals: user.id } }, { status: { equals: 'published' } }] }, overrideAccess: true, req })
           return {
             author: user.id,
-            authorName: publicName(user.name),
+            // Staff speak for Neeze, never as a made-up resident.
+            authorName: staff ? 'Neeze Team' : publicName(user.name),
+            official: staff,
+            pinned: staff && isMod(user) ? Boolean(data.pinned) : false,
             body,
             image: data.image ? idOf(data.image) : undefined,
             topic: TOPICS.includes(data.topic) ? data.topic : 'general',

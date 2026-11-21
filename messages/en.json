@@ -527,7 +527,9 @@
       "r7": "Report posts that break these rules. Moderators may hide or remove them and restrict accounts. Serious cases may be reported to the authorities."
     },
     "rulesContact": "Questions or complaints: use Report on any post, or write to <mail>{email}</mail>.",
-    "rulesContactNoEmail": "Questions or complaints: use Report on any post, or contact Neeze support."
+    "rulesContactNoEmail": "Questions or complaints: use Report on any post, or contact Neeze support.",
+    "official": "Official Neeze account",
+    "pinned": "Pinned"
   },
   "report": {
     "button": "Report",

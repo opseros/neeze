@@ -170,6 +170,8 @@ check "others cannot edit a post" "$(code_ -b $T/neeze-ckB -X PATCH $B/api/posts
 check "author edits own post; counts stay server-side" "$(curl -gs -b $T/neeze-ckA -X PATCH $B/api/posts/$pid2 -H "$J" -d '{"body":"Water supply off in Ambicapatty tomorrow 9-5","helpfulCount":50,"status":"published"}' | jq_ "(d['doc']['body'][-3:], d['doc']['helpfulCount'], bool(d['doc'].get('editedAt')))")" "('9-5', 0, True)"
 check "guest cannot comment" "$(code_ -X POST $B/api/comments -H "$J" -d "{\"post\":$pid1,\"body\":\"hi\"}")" "403"
 cid=$(curl -gs -b $T/neeze-ckB -X POST $B/api/comments -H "$J" -d "{\"post\":$pid1,\"body\":\"Try Rahman Tailors on Link Road\"}" | jq_ "d['doc']['id']")
+check "customers can't post as official or pin" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/posts -H "$J" -d '{"body":"Trying to look official here","official":true,"pinned":true,"authorName":"Neeze Team"}' | jq_ "(d['doc']['official'], d['doc']['pinned'], d['doc']['authorName'] != 'Neeze Team')")" "(False, False, True)"
+check "staff post shows as Neeze Team with the badge" "$(curl -gs -X POST $B/api/posts -H "$J" "${ADM[@]}" -d "{\"body\":\"Team post $R\",\"topic\":\"general\"}" | jq_ "(d['doc']['authorName'], d['doc']['official'], d['doc']['status'])")" "('Neeze Team', True, 'published')"
 check "comment counted on the post" "$(curl -gs "$B/api/posts/$pid1?depth=0" | jq_ "d['commentCount']")" "1"
 check "author told about the comment" "$(curl -gs -b $T/neeze-ckA "$B/api/notifications?where[kind][equals]=new-comment" | jq_ "d['totalDocs']>0")" "True"
 check "helpful toggles on" "$(curl -gs -b $T/neeze-ckB -X POST $B/api/posts/$pid1/helpful | jq_ "(d['helpful'], d['count'])")" "(True, 1)"

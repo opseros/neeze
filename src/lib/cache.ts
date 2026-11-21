@@ -228,6 +228,8 @@ export type PostView = {
   helpfulBy: number[]
   status: string
   commentsLocked: boolean
+  pinned: boolean
+  official: boolean
   createdAt: string
   editedAt: string | null
 }
@@ -252,6 +254,8 @@ export function toPostView(p: Post): PostView {
     helpfulBy: ((p.helpfulBy ?? []) as unknown[]).map(idOf).filter(Boolean) as number[],
     status: p.status ?? 'published',
     commentsLocked: Boolean(p.commentsLocked),
+    pinned: Boolean(p.pinned),
+    official: Boolean(p.official),
     createdAt: p.createdAt,
     editedAt: p.editedAt ?? null,
   }
@@ -266,10 +270,10 @@ export const getCommunityFeedCached = unstable_cache(
     const and: Where[] = [{ status: { equals: 'published' } }]
     if (input.topic) and.push({ topic: { equals: input.topic } })
     if (input.locality) and.push({ locality: { equals: input.locality } })
-    const r = await (await payload()).find({ collection: 'posts', where: { and }, sort: '-createdAt', limit: 20, page: input.page ?? 1, depth: 1, locale })
+    const r = await (await payload()).find({ collection: 'posts', where: { and }, sort: ['-pinned', '-createdAt'], limit: 20, page: input.page ?? 1, depth: 1, locale })
     return { docs: (r.docs as Post[]).map(toPostView), totalPages: r.totalPages, page: r.page ?? 1 }
   },
-  ['community-feed-v1'],
+  ['community-feed-v2'],
   { tags: [TAGS.community, TAGS.localities], revalidate: HOUR },
 )
 
@@ -278,7 +282,7 @@ export const getPostCached = unstable_cache(
     const p = await (await payload()).findByID({ collection: 'posts', id, depth: 1, locale }).catch(() => null)
     return p && p.status === 'published' ? toPostView(p as Post) : null
   },
-  ['community-post-v1'],
+  ['community-post-v2'],
   { tags: [TAGS.community], revalidate: HOUR },
 )
 

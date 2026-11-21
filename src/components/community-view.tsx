@@ -1,4 +1,4 @@
-import { MapPin, MessageCircle, ThumbsUp } from 'lucide-react'
+import { BadgeCheck, MapPin, MessageCircle, Pin, ThumbsUp } from 'lucide-react'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 
@@ -22,7 +22,10 @@ export async function PostMeta({ post }: { post: PostView }) {
   const [locale, t] = await Promise.all([getLocale(), getTranslations('community')])
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-      <span className="font-semibold text-ink">{post.authorName}</span>
+      <span className="inline-flex items-center gap-1 font-semibold text-ink">
+        {post.authorName}
+        {post.official && <BadgeCheck className="size-4 text-brand-teal" aria-label={t('official')} />}
+      </span>
       <span aria-hidden>·</span>
       <time dateTime={post.createdAt}>{relativeTime(post.createdAt, locale)}</time>
       {post.editedAt && <span>· {t('edited')}</span>}
@@ -45,6 +48,11 @@ export async function PostCard({ post, note }: { post: PostView; note?: string }
         <PostMeta post={post} />
         <TopicChip topic={post.topic} />
       </div>
+      {post.pinned && (
+        <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-navy">
+          <Pin className="size-3.5" aria-hidden /> {t('pinned')}
+        </p>
+      )}
       {note && <p className="mt-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-950">{note}</p>}
       <div className={`mt-3 grid gap-3 ${post.image ? 'sm:grid-cols-[1fr_160px]' : ''}`}>
         <p className="line-clamp-6 whitespace-pre-line text-ink">{post.body}</p>

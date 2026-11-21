@@ -55,7 +55,7 @@ In dev, sign-in and mobile codes are printed in the server log and shown on scre
 
 ```bash
 npm test                                  # unit tests: roles, status transitions, search text, phones, session, OTP
-BASE=http://localhost:3000 scripts/smoke-test.sh   # 141 API checks against a running dev server seeded with demo data
+BASE=http://localhost:3000 scripts/smoke-test.sh   # 143 API checks against a running dev server seeded with demo data
 ```
 
 The smoke test covers community (review queue, privacy of authors, reports, auto-hide, blocks, restrictions, limits, photo ownership), all four languages, reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
@@ -139,6 +139,16 @@ npm.cmd run import-news:web
 ```
 
 Nothing goes live until an editor opens each draft in Admin → News, checks it against its sources, adds a photo and presses **Publish**. Stories that already exist (same slug) are skipped. Each story has a *Byline* (default "Neeze Editor").
+
+## Starter community posts
+
+Posts by staff accounts appear as **Neeze Team** with an official badge (never as a made-up resident); moderators can **pin** a post to the top of the feed (Admin → Posts → *Pinned*). Six starter posts (welcome, waterlogging spots, recommendations, lost & found, the flyover plan, the offline tip) are in `data/community-posts-starter.json`:
+
+```powershell
+node scripts/import-posts-web.mjs     # asks for an admin/moderator email and password
+```
+
+Running it again skips posts that are already up.
 
 ## Moderating the community
 

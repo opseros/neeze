@@ -490,6 +490,14 @@ export interface Post {
    */
   status?: ('pending' | 'published' | 'hidden' | 'removed') | null;
   commentsLocked?: boolean | null;
+  /**
+   * Keep at the top of the community feed.
+   */
+  pinned?: boolean | null;
+  /**
+   * Posted by Neeze staff: shown as "Neeze Team" with a badge.
+   */
+  official?: boolean | null;
   commentCount?: number | null;
   helpfulCount?: number | null;
   helpfulBy?: (number | User)[] | null;
@@ -950,6 +958,8 @@ export interface PostsSelect<T extends boolean = true> {
   locality?: T;
   status?: T;
   commentsLocked?: T;
+  pinned?: T;
+  official?: T;
   commentCount?: T;
   helpfulCount?: T;
   helpfulBy?: T;

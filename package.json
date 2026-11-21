@@ -16,7 +16,8 @@
     "migrate": "payload migrate",
     "vercel-build": "payload migrate && next build --webpack",
     "import-news": "payload run src/seed/import-news.ts",
-    "import-news:web": "node scripts/import-news-web.mjs"
+    "import-news:web": "node scripts/import-news-web.mjs",
+    "import-posts:web": "node scripts/import-posts-web.mjs"
   },
   "engines": {
     "node": ">=20.9"
