@@ -10,6 +10,8 @@ import type { News } from '@/payload-types'
 import { getNewsBySlugCached, getRelatedNewsCached } from '@/lib/cache'
 import { getContentLocale } from '@/lib/server'
 import { fmtDate } from '@/lib/format'
+import { Translatable } from '@/components/translate'
+import { needsTranslation, translateEnabled } from '@/lib/translate'
 
 async function load(slug: string): Promise<News | null> {
   return getNewsBySlugCached(slug.slice(0, 200), await getContentLocale())
@@ -57,7 +59,9 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
           </Container>
         )}
         <Container className="max-w-3xl py-6 md:py-10">
-          {n.body && <RichText data={n.body} className="article-body max-w-[68ch]" />}
+          <Translatable kind="news" id={n.id} headingFirst offer={translateEnabled() && needsTranslation(`${n.title} ${n.summary ?? ''}`, locale)} className="article-body max-w-[68ch]">
+            {n.body && <RichText data={n.body} className="article-body max-w-[68ch]" />}
+          </Translatable>
           {n.sources && n.sources.length > 0 && (
             <section className="mt-8 border-t border-line pt-4 text-sm">
               <h2 className="font-semibold">{t('sources')}</h2>

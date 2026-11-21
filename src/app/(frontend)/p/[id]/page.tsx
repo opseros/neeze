@@ -16,6 +16,8 @@ import { fmtDate } from '@/lib/format'
 import { usesBengaliNames } from '@/i18n/locales'
 import { ReportButton as ReportContent } from '@/components/community'
 import { TrackOnce } from '@/components/tracker'
+import { Translatable } from '@/components/translate'
+import { needsTranslation, translateEnabled } from '@/lib/translate'
 
 
 async function load(id: string) {
@@ -116,7 +118,11 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
           {(p.summary || p.nameBn) && (
             <Section title={t('provider.about')}>
               {locale !== 'bn' && p.nameBn && <p className="mb-2 text-muted">{p.nameBn}</p>}
-              {p.summary && <p className="leading-relaxed">{p.summary}</p>}
+              {p.summary && (
+                <Translatable kind="provider" id={p.id} offer={translateEnabled() && needsTranslation(p.summary, locale)}>
+                  <p className="leading-relaxed">{p.summary}</p>
+                </Translatable>
+              )}
             </Section>
           )}
 
@@ -195,7 +201,11 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
                       <span className="pill bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200">{t('reviews.verified')}</span>
                       <span className="text-xs text-muted">{dateFmt(rv.createdAt)}</span>
                     </div>
-                    {rv.comment && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{rv.comment}</p>}
+                    {rv.comment && (
+                      <Translatable kind="review" id={rv.id} offer={translateEnabled() && needsTranslation(rv.comment, locale)} className="mt-2 text-sm">
+                        <p className="whitespace-pre-line text-sm leading-relaxed">{rv.comment}</p>
+                      </Translatable>
+                    )}
                     {rv.reply && (
                       <div className="mt-3 rounded-lg border-l-4 border-brand-blue/40 bg-surface p-3 text-sm">
                         <p className="text-xs font-semibold text-muted">{t('reviews.reply')}</p>

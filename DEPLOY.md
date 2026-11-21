@@ -57,6 +57,7 @@ The origin must match the address in the browser exactly: `https://`, no trailin
 | `EMAIL_FROM` | `neeze@opseros.com` |
 | `PHONE_VERIFICATION` | `off` for now (see "Mobile number check") |
 | `OTP_PROVIDER` | leave unset for now; `whatsapp` later, for the mobile check |
+| `GOOGLE_TRANSLATE_API_KEY` | optional: turns on the Translate button (see "Translate button") |
 | `ALERT_EMAIL` | where server error alerts go, e.g. `tech@opseros.com` (needs `RESEND_API_KEY`) |
 | `WHATSAPP_ALERT_TEMPLATE` | `neeze_new_request` (optional provider alerts, see below) |
 | `R2_BUCKET` | `neeze-media` |
@@ -181,6 +182,19 @@ The next deploy applies it automatically.
 - [ ] Neon: point-in-time restore is on for your plan, and one test restore is written down (see below)
 - [ ] Uptime monitor on `https://neeze.opseros.com/healthz` (see below)
 - [ ] `ALERT_EMAIL` set; open `/insights` signed in as staff
+
+## Translate button (Google Cloud Translation)
+
+Readers see **Translate** under community posts, comments, news, business descriptions and reviews that aren't already in their language. Off until you add a key:
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → create a project (e.g. `neeze`) → **APIs & Services → Library** → enable **Cloud Translation API**. Google asks for a billing account; the first 500,000 characters each month are free.
+2. **APIs & Services → Credentials → Create credentials → API key**. Edit the key → **API restrictions → Restrict key → Cloud Translation API** only. (Leave application restrictions off; Vercel's servers have no fixed address.)
+3. Vercel → Environment Variables: `GOOGLE_TRANSLATE_API_KEY` = the key. Optional `TRANSLATE_DAILY_CHAR_LIMIT` (default `15000` characters a day across the site, about 450,000 a month, inside the free tier). Redeploy.
+4. Google Cloud → **Billing → Budgets & alerts**: add a small budget (e.g. ₹500/month) with email alerts, as a safety net.
+
+How it stays cheap and safe: each paragraph is translated once and saved, so later readers cost nothing; only Neeze content can be translated (the server loads the text itself, so the key can't be used as a free translation service); 30 requests a minute per visitor; when the daily limit is reached the button says to try tomorrow. Bengali-script Manipuri readers get Bengali (Google writes Manipuri only in Meitei Mayek). Machine translation of Meiteilon is less accurate than Bengali or English.
+
+For the privacy policy: when a reader taps Translate, that text is sent to Google Cloud Translation. No account or personal details go with it.
 
 ## Monitoring and alerts
 

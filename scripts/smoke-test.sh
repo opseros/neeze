@@ -263,6 +263,20 @@ check "article page" "$(code_ $B/news/$nid)" "200"
 check "services directory page" "$(code_ $B/directory)" "200"
 curl -gs -o /dev/null -X PATCH "$B/api/news/$(curl -gs "$B/api/news?where[slug][equals]=$nid&depth=0" | jq_ "d['docs'][0]['id']")" -H "$J" "${ADM[@]}" -d '{"featured":false}'
 
+# --- translation (server runs with TRANSLATE_PROVIDER=mock) ---
+TR() { curl -gs -o /tmp/neeze-tr.json -w '%{http_code}' -X POST $B/api/translation-cache/translate -H "$J" -d "$1"; }
+bp=$(curl -gs -X POST $B/api/posts -H "$J" "${ADM[@]}" -d "{\"body\":\"তারাপুরে ভালো দর্জি $R\",\"topic\":\"question\"}" | jq_ "d['doc']['id']")
+check "Translate offered to English readers of a Bengali post" "$(curl -gs -b NEXT_LOCALE=en $B/community/$bp | grep -c 'data-translate-button' | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "...but not to Bengali readers" "$(curl -gs -b NEXT_LOCALE=bn $B/community/$bp | grep -c 'data-translate-button')" "0"
+check "post translated" "$(TR "{\"kind\":\"post\",\"id\":$bp,\"locale\":\"en\"}")$(jq_ "d['paragraphs'][0]" < /tmp/neeze-tr.json)" "200[en] তারাপুরে ভালো দর্জি $R"
+n1=$(curl -gs "${ADM[@]}" "$B/api/translation-cache?limit=0" | jq_ "d['totalDocs']"); TR "{\"kind\":\"post\",\"id\":$bp,\"locale\":\"en\"}" >/dev/null
+check "second reader served from cache (not sent to Google again)" "$(curl -gs "${ADM[@]}" "$B/api/translation-cache?limit=0" | jq_ "d['totalDocs']")" "$n1"
+check "Bengali-script Manipuri readers get Bengali" "$(TR "{\"kind\":\"post\",\"id\":$bp,\"locale\":\"mni-Beng\"}")$(jq_ "d['target']" < /tmp/neeze-tr.json)" "200bn"
+check "news article translated (title first)" "$(TR "{\"kind\":\"news\",\"id\":$(curl -gs "$B/api/news?where[slug][equals]=$nid&depth=0" | jq_ "d['docs'][0]['id']"),\"locale\":\"bn\"}")$(jq_ "d['paragraphs'][0].startswith('[bn] Test story')" < /tmp/neeze-tr.json)" "200True"
+check "only site content can be translated" "$(TR '{"kind":"text","id":1,"locale":"en"}')" "400"
+check "hidden or pending content can't be translated" "$(TR "{\"kind\":\"post\",\"id\":$pid2,\"locale\":\"en\"}")" "404"
+check "translation cache is admin-only" "$(code_ -b $T/neeze-ckB "$B/api/translation-cache")" "403"
+
 # --- sign-out ---
 curl -gs -b $T/neeze-ckA -c $T/neeze-ckA -o /dev/null -X POST $B/auth/logout
 check "sign-out clears session" "$(curl -gs -b $T/neeze-ckA $B/auth/me | jq_ "d['user']")" "None"

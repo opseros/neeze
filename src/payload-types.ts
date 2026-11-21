@@ -83,6 +83,7 @@ export interface Config {
     'audit-logs': AuditLog;
     'otp-challenges': OtpChallenge;
     'analytics-events': AnalyticsEvent;
+    'translation-cache': TranslationCache;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -106,6 +107,7 @@ export interface Config {
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'otp-challenges': OtpChallengesSelect<false> | OtpChallengesSelect<true>;
     'analytics-events': AnalyticsEventsSelect<false> | AnalyticsEventsSelect<true>;
+    'translation-cache': TranslationCacheSelect<false> | TranslationCacheSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -732,6 +734,20 @@ export interface AnalyticsEvent {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-cache".
+ */
+export interface TranslationCache {
+  id: number;
+  key: string;
+  target: string;
+  source?: string | null;
+  text: string;
+  chars: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -817,6 +833,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'analytics-events';
         value: number | AnalyticsEvent;
+      } | null)
+    | ({
+        relationTo: 'translation-cache';
+        value: number | TranslationCache;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1258,6 +1278,19 @@ export interface AnalyticsEventsSelect<T extends boolean = true> {
   category?: T;
   locale?: T;
   mobile?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-cache_select".
+ */
+export interface TranslationCacheSelect<T extends boolean = true> {
+  key?: T;
+  target?: T;
+  source?: T;
+  text?: T;
+  chars?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -30,6 +30,7 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 | Landing page = news front page (top story, more news by section, services search, emergency numbers, community); services home at `/directory` | Done |
 | Admin → Site settings → Landing page: choose News, Services or Community; temporary change for set dates (another page and/or a spotlight banner) that switches back by itself | Done |
 | News sections (Local, Civic & utilities, Health, Education, Traffic & transport, Events, Business, Alerts), Pin as top story, section pages, related stories, headline serif (Noto Serif Bengali / Noto Serif) | Done |
+| Translate button (Google Cloud Translation) on posts, comments, news, business descriptions and reviews not in the reader's language; cached per paragraph, daily character limit, "Translated by Google" | Done (needs `GOOGLE_TRANSLATE_API_KEY`) |
 | Insights for staff (`/insights`, linked from the admin dashboard): no-result searches, listing views, call/WhatsApp taps, request conversion, provider answer rate within 24 h and slow providers, completion and reviews, moderation backlog | Done |
 | Anonymous usage events: no account, IP, cookie or device ID; Do Not Track respected; phone numbers masked in searches; kept 400 days | Done |
 | Server error alerts by email (`ALERT_EMAIL`), `/healthz` for uptime monitors, GitHub Actions CI, backup restore runbook (DEPLOY.md) | Done |
@@ -45,6 +46,7 @@ cp .env.example .env                      # then set PAYLOAD_SECRET and SESSION_
 npm install
 SEED_DEMO=true SEED_ADMIN_EMAIL=you@example.com SEED_ADMIN_PASSWORD='choose-a-strong-one' npm run seed
 npm run dev                               # http://localhost:3000, admin at /admin
+# TRANSLATE_PROVIDER=mock npm run dev     # fake translations, no Google key needed
 ```
 
 In dev, sign-in and mobile codes are printed in the server log and shown on screen (`OTP_DEV_ECHO=true`). This is ignored when `NODE_ENV=production`.
@@ -55,7 +57,7 @@ In dev, sign-in and mobile codes are printed in the server log and shown on scre
 
 ```bash
 npm test                                  # unit tests: roles, status transitions, search text, phones, session, OTP
-BASE=http://localhost:3000 scripts/smoke-test.sh   # 145 API checks against a running dev server seeded with demo data
+BASE=http://localhost:3000 scripts/smoke-test.sh   # 154 API checks against a running dev server seeded with demo data
 ```
 
 The smoke test covers community (review queue, privacy of authors, reports, auto-hide, blocks, restrictions, limits, photo ownership), all four languages, reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.

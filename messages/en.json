@@ -557,5 +557,13 @@
       "too_many": "Too many reports today. Try again tomorrow.",
       "generic": "Couldn't send. Please try again."
     }
+  },
+  "translate": {
+    "button": "Translate",
+    "showOriginal": "Show original",
+    "by": "Translated by Google",
+    "busy": "Translating…",
+    "failed": "Couldn't translate right now. Try again later.",
+    "busyToday": "Translation is resting for today. Try again tomorrow."
   }
 }
