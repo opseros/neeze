@@ -133,7 +133,22 @@ export const Posts: CollectionConfig = {
   fields: [
     authorField(),
     { name: 'authorName', type: 'text', admin: { readOnly: true } },
-    { name: 'body', type: 'textarea', required: true, maxLength: LIMITS.postBody },
+    { name: 'body', type: 'textarea', required: true, maxLength: LIMITS.postBody, admin: { description: 'The post as written. For Neeze Team posts, write it in Bengali and add other languages below.' } },
+    {
+      name: 'translations',
+      type: 'array',
+      admin: { description: 'Neeze Team posts only: the same post in other languages. Readers see their language; otherwise the text above.' },
+      access: { create: ({ req }) => isStaff(req.user), update: ({ req }) => isStaff(req.user) },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            { name: 'locale', type: 'select', required: true, options: [{ label: 'English', value: 'en' }, { label: 'বাংলা', value: 'bn' }, { label: 'Manipuri (Bengali script)', value: 'mni-Beng' }, { label: 'Manipuri (Meitei Mayek)', value: 'mni-Mtei' }], admin: { width: '30%' } },
+            { name: 'body', type: 'textarea', required: true, maxLength: LIMITS.postBody, admin: { width: '70%' } },
+          ],
+        },
+      ],
+    },
     { name: 'image', type: 'upload', relationTo: 'media' },
     { name: 'topic', type: 'select', required: true, defaultValue: 'general', index: true, options: [...TOPICS] },
     { name: 'locality', type: 'relationship', relationTo: 'localities', index: true },
@@ -178,6 +193,7 @@ export const Posts: CollectionConfig = {
             authorName: staff ? 'Neeze Team' : publicName(user.name),
             official: staff,
             pinned: staff && isMod(user) ? Boolean(data.pinned) : false,
+            translations: staff && Array.isArray(data.translations) ? data.translations : [],
             body,
             image: data.image ? idOf(data.image) : undefined,
             topic: TOPICS.includes(data.topic) ? data.topic : 'general',
@@ -297,7 +313,7 @@ export const Comments: CollectionConfig = {
         return {
           post: post.id,
           author: user.id,
-          authorName: publicName(user.name),
+          authorName: isStaff(user) ? 'Neeze Team' : publicName(user.name),
           body,
           status: initialStatus({ mode: 'open', isStaff: isStaff(user), publishedBefore: 1, text: body, kind: 'comment' }),
           reportCount: 0,

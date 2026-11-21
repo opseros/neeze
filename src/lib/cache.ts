@@ -22,6 +22,7 @@ export const TAGS = {
 } as const
 
 import type { Locale } from '@/i18n/locales'
+import { bodyFor } from './community'
 const HOUR = 3600
 const payload = () => getPayload({ config })
 
@@ -237,14 +238,15 @@ export type CommentView = { id: number; authorId: number | null; authorName: str
 
 const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: number }).id : ((v as number) ?? null))
 
-export function toPostView(p: Post): PostView {
+/** With a locale, `body` is the reader's language (see bodyFor); without one, the post as written. */
+export function toPostView(p: Post, locale?: string): PostView {
   const img = typeof p.image === 'object' && p.image ? (p.image as Media) : null
   const loc = typeof p.locality === 'object' && p.locality ? (p.locality as Locality) : null
   return {
     id: p.id,
     authorId: idOf(p.author),
     authorName: p.authorName ?? '',
-    body: p.body,
+    body: bodyFor(p.body, p.translations, locale),
     topic: p.topic,
     localityId: idOf(p.locality),
     localityName: loc?.name ?? null,
@@ -271,18 +273,18 @@ export const getCommunityFeedCached = unstable_cache(
     if (input.topic) and.push({ topic: { equals: input.topic } })
     if (input.locality) and.push({ locality: { equals: input.locality } })
     const r = await (await payload()).find({ collection: 'posts', where: { and }, sort: ['-pinned', '-createdAt'], limit: 20, page: input.page ?? 1, depth: 1, locale })
-    return { docs: (r.docs as Post[]).map(toPostView), totalPages: r.totalPages, page: r.page ?? 1 }
+    return { docs: (r.docs as Post[]).map((d) => toPostView(d, locale)), totalPages: r.totalPages, page: r.page ?? 1 }
   },
-  ['community-feed-v2'],
+  ['community-feed-v3'],
   { tags: [TAGS.community, TAGS.localities], revalidate: HOUR },
 )
 
 export const getPostCached = unstable_cache(
   async (id: number, locale: Locale): Promise<PostView | null> => {
     const p = await (await payload()).findByID({ collection: 'posts', id, depth: 1, locale }).catch(() => null)
-    return p && p.status === 'published' ? toPostView(p as Post) : null
+    return p && p.status === 'published' ? toPostView(p as Post, locale) : null
   },
-  ['community-post-v2'],
+  ['community-post-v3'],
   { tags: [TAGS.community], revalidate: HOUR },
 )
 

@@ -6,7 +6,8 @@
  *   node scripts/import-posts-web.mjs
  *   node scripts/import-posts-web.mjs data/community-posts-starter.json https://neeze.opseros.com
  *
- * A post whose text is already on the site is skipped, so it is safe to run twice.
+ * Posts already on the site are brought up to date instead of posted again (for example, an older
+ * two-language post becomes Bengali text + English translation). Safe to run any number of times.
  */
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -40,15 +41,24 @@ const { token } = await api('POST', '/api/users/login', null, { email, password 
 // Oldest first, so the welcome post is the first one people ever saw.
 const posts = JSON.parse(readFileSync(file, 'utf8'))
 let created = 0
+let updated = 0
 for (const p of posts) {
   const firstLine = p.body.split('\n')[0].slice(0, 60)
-  const found = await api('GET', `/api/posts?where[body][like]=${encodeURIComponent(firstLine)}&limit=1&depth=0`, token)
-  if (found.totalDocs) {
-    console.log(`skip (already posted): ${p.key}`)
+  const found = await api('GET', `/api/posts?where[body][like]=${encodeURIComponent(firstLine)}&where[official][equals]=true&limit=1&depth=0`, token)
+  const existing = found.docs?.[0]
+  if (existing) {
+    const same = existing.body === p.body && JSON.stringify((existing.translations ?? []).map((t) => [t.locale, t.body])) === JSON.stringify((p.translations ?? []).map((t) => [t.locale, t.body]))
+    if (same) {
+      console.log(`up to date: ${p.key}`)
+      continue
+    }
+    await api('PATCH', `/api/posts/${existing.id}`, token, { body: p.body, translations: p.translations ?? [] })
+    updated++
+    console.log(`updated: ${p.key} → ${site}/community/${existing.id}`)
     continue
   }
-  const { doc } = await api('POST', '/api/posts', token, { body: p.body, topic: p.topic, pinned: Boolean(p.pinned) })
+  const { doc } = await api('POST', '/api/posts', token, { body: p.body, translations: p.translations ?? [], topic: p.topic, pinned: Boolean(p.pinned) })
   created++
   console.log(`posted: ${p.key} → ${site}/community/${doc.id}${doc.status === 'published' ? '' : ` (${doc.status})`}`)
 }
-console.log(`\nPosted ${created}. See ${site}/community`)
+console.log(`\nPosted ${created}, updated ${updated}. See ${site}/community`)

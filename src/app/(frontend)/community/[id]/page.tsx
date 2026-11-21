@@ -23,7 +23,7 @@ async function load(id: number): Promise<PostView | null> {
   if (!user) return null
   const payload = await getPayloadClient()
   const p = await payload.findByID({ collection: 'posts', id, depth: 1, locale, overrideAccess: true }).catch(() => null)
-  const view = p ? toPostView(p as Post) : null
+  const view = p ? toPostView(p as Post, locale) : null
   return view && view.authorId === user.id && view.status !== 'removed' ? view : null
 }
 

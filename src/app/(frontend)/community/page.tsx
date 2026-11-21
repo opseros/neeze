@@ -31,7 +31,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   if (viewer.user && page === 1) {
     const payload = await getPayloadClient()
     const { docs } = await payload.find({ collection: 'posts', where: { and: [{ author: { equals: viewer.user.id } }, { status: { in: ['pending', 'hidden'] } }] }, sort: '-createdAt', limit: 5, depth: 1, locale, overrideAccess: true })
-    mine = (docs as Post[]).map(toPostView)
+    mine = (docs as Post[]).map((d) => toPostView(d, locale))
   }
 
   const href = (q: Partial<Search>) => {

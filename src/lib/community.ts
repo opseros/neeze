@@ -83,3 +83,19 @@ export function cleanText(v: unknown, max: number): string {
 }
 
 export const dayAgo = (now = new Date()) => new Date(now.getTime() - 86_400_000).toISOString()
+
+/**
+ * A post is written once (its body). Neeze Team posts can carry translations; readers get their own
+ * language, then a close fallback, then the original. Bengali-script Manipuri readers read Bengali;
+ * Meitei Mayek readers fall back to English.
+ */
+const BODY_FALLBACK: Record<string, string[]> = { 'mni-Beng': ['bn'], 'mni-Mtei': ['en'] }
+
+export function bodyFor(body: string, translations: { locale?: string | null; body?: string | null }[] | null | undefined, locale?: string): string {
+  if (!locale || !translations?.length) return body
+  for (const l of [locale, ...(BODY_FALLBACK[locale] ?? [])]) {
+    const t = translations.find((x) => x.locale === l && x.body?.trim())
+    if (t) return t.body!
+  }
+  return body
+}

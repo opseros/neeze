@@ -481,7 +481,20 @@ export interface Post {
   id: number;
   author?: (number | null) | User;
   authorName?: string | null;
+  /**
+   * The post as written. For Neeze Team posts, write it in Bengali and add other languages below.
+   */
   body: string;
+  /**
+   * Neeze Team posts only: the same post in other languages. Readers see their language; otherwise the text above.
+   */
+  translations?:
+    | {
+        locale: 'en' | 'bn' | 'mni-Beng' | 'mni-Mtei';
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
   image?: (number | null) | Media;
   topic: 'question' | 'recommendation' | 'announcement' | 'lost-found' | 'general';
   locality?: (number | null) | Locality;
@@ -953,6 +966,13 @@ export interface PostsSelect<T extends boolean = true> {
   author?: T;
   authorName?: T;
   body?: T;
+  translations?:
+    | T
+    | {
+        locale?: T;
+        body?: T;
+        id?: T;
+      };
   image?: T;
   topic?: T;
   locality?: T;

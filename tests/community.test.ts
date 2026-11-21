@@ -56,3 +56,21 @@ describe('helpers', () => {
     expect(isReportReason('user', 'spam')).toBe(false)
   })
 })
+
+import { bodyFor } from '../src/lib/community'
+
+describe('post language', () => {
+  const tr = [{ locale: 'en', body: 'Welcome!' }]
+  it('shows the reader their language, else the original', () => {
+    expect(bodyFor('স্বাগত!', tr, 'en')).toBe('Welcome!')
+    expect(bodyFor('স্বাগত!', tr, 'bn')).toBe('স্বাগত!')
+    expect(bodyFor('স্বাগত!', [], 'en')).toBe('স্বাগত!')
+    expect(bodyFor('স্বাগত!', tr)).toBe('স্বাগত!')
+  })
+  it('Manipuri readers get the closest script', () => {
+    expect(bodyFor('স্বাগত!', tr, 'mni-Mtei')).toBe('Welcome!')
+    expect(bodyFor('Hello', [{ locale: 'bn', body: 'নমস্কার' }], 'mni-Beng')).toBe('নমস্কার')
+    expect(bodyFor('স্বাগত!', [...tr, { locale: 'mni-Beng', body: 'তরাম্না ওকচরি' }], 'mni-Beng')).toBe('তরাম্না ওকচরি')
+    expect(bodyFor('x', [{ locale: 'en', body: '  ' }], 'en')).toBe('x')
+  })
+})
