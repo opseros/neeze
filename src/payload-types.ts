@@ -82,6 +82,7 @@ export interface Config {
     notifications: Notification;
     'audit-logs': AuditLog;
     'otp-challenges': OtpChallenge;
+    'analytics-events': AnalyticsEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -104,6 +105,7 @@ export interface Config {
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'otp-challenges': OtpChallengesSelect<false> | OtpChallengesSelect<true>;
+    'analytics-events': AnalyticsEventsSelect<false> | AnalyticsEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -672,6 +674,25 @@ export interface OtpChallenge {
   createdAt: string;
 }
 /**
+ * Anonymous usage events behind the Insights page. Kept for 400 days.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-events".
+ */
+export interface AnalyticsEvent {
+  id: number;
+  type: 'search' | 'provider_view' | 'call' | 'whatsapp' | 'install';
+  q?: string | null;
+  resultCount?: number | null;
+  provider?: number | null;
+  locality?: number | null;
+  category?: string | null;
+  locale?: string | null;
+  mobile?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -754,6 +775,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'otp-challenges';
         value: number | OtpChallenge;
+      } | null)
+    | ({
+        relationTo: 'analytics-events';
+        value: number | AnalyticsEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1157,6 +1182,22 @@ export interface OtpChallengesSelect<T extends boolean = true> {
   expiresAt?: T;
   attempts?: T;
   consumed?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-events_select".
+ */
+export interface AnalyticsEventsSelect<T extends boolean = true> {
+  type?: T;
+  q?: T;
+  resultCount?: T;
+  provider?: T;
+  locality?: T;
+  category?: T;
+  locale?: T;
+  mobile?: T;
   updatedAt?: T;
   createdAt?: T;
 }

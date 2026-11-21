@@ -93,6 +93,7 @@ n=$(curl -gs -b "NEXT_LOCALE=bn" "$B/explore?q=%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6
 # --- provider side: admin links B as owner of the demo electrician ---
 ADMIN_EMAIL=${SMOKE_ADMIN_EMAIL:-admin@neeze.local}; ADMIN_PASSWORD=${SMOKE_ADMIN_PASSWORD:-Neeze-dev-2026!}
 TOK=$(curl -gs -X POST $B/api/users/login -H "$J" -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" | jq_ "d.get('token','')")
+curl -gs -c $T/neeze-ckAdm -o /dev/null -X POST $B/api/users/login -H "$J" -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}"
 check "admin can sign in to /admin API" "$([ ${#TOK} -gt 20 ] && echo yes)" "yes"
 curl -gs -o /dev/null -X PATCH $B/api/providers/$pid -H "$J" -H "Authorization: JWT $TOK" -d "{\"owners\":[$uidB]}"
 KEY2=testkey2-$(date +%s%N)
@@ -214,6 +215,25 @@ mid=$(curl -gs -b $T/neeze-ckB -X POST $B/api/media -F "file=@$T/neeze-dot.png" 
 check "member uploads a photo" "$([ -n "$mid" ] && [ "$mid" != "None" ] && echo yes)" "yes"
 check "uploader stays private" "$(curl -gs "$B/api/media/$mid" | jq_ "'uploadedBy' in d")" "False"
 check "can't attach someone else's photo" "$(code_ -b $T/neeze-ckC -X POST $B/api/comments -H "$J" -d '{}' >/dev/null; code_ -b $T/neeze-ckA -X PATCH $B/api/posts/$pid1 -H "$J" -d "{\"image\":$mid}")" "403"
+
+# --- analytics, insights, health ---
+UA=(-A "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36")
+TQ="zzqx$(echo $R | tr 0-9 a-j)"
+check "search beacon accepted" "$(code_ "${UA[@]}" -X POST $B/api/analytics-events/track -H 'content-type: text/plain' -d "{\"type\":\"search\",\"q\":\"$TQ call 98640 12345\",\"results\":0,\"locale\":\"en\",\"mobile\":true}")" "204"
+code_ "${UA[@]}" -X POST $B/api/analytics-events/track -H 'dnt: 1' -d "{\"type\":\"search\",\"q\":\"$TQ dnt\",\"results\":0}" >/dev/null
+code_ -X POST $B/api/analytics-events/track -d "{\"type\":\"search\",\"q\":\"$TQ bot\",\"results\":0}" >/dev/null
+check "unknown event refused" "$(code_ "${UA[@]}" -X POST $B/api/analytics-events/track -d '{"type":"login","provider":1}')" "400"
+code_ "${UA[@]}" -X POST $B/api/analytics-events/track -d "{\"type\":\"call\",\"provider\":$pid}" >/dev/null
+stored=$(curl -gs "${ADM[@]}" "$B/api/analytics-events?where[q][like]=$TQ&limit=10&depth=0")
+check "phone number masked before storage" "$(echo "$stored" | jq_ "[r['q'] for r in d['docs']]")" "['$TQ call #']"
+check "Do Not Track and bots are not counted" "$(echo "$stored" | jq_ "d['totalDocs']")" "1"
+check "events are staff-only" "$(code_ -b $T/neeze-ckB "$B/api/analytics-events")" "403"
+check "nobody can write events through the open API" "$(code_ -b $T/neeze-ckB -X POST "$B/api/analytics-events" -H "$J" -d '{"type":"install"}')" "403"
+check "Insights sends guests to the staff login" "$(curl -gs -o /dev/null -w '%{redirect_url}' $B/insights | grep -c 'admin/login' | awk '{print ($1>0)?"yes":"no"}')" "yes"
+check "Insights hidden from customers" "$(curl -gs -b $T/neeze-ckB $B/insights | grep -c 'Launch KPIs')" "0"
+ins=$(curl -gs -b $T/neeze-ckAdm -H "Sec-Fetch-Site: same-origin" "$B/insights?days=7")
+check "Insights open for staff, empty search listed" "$(echo "$ins" | grep -c "$TQ call #" | awk '{print ($1>0)?"yes":"no"}')$(echo "$ins" | grep -c 'Launch KPIs' | awk '{print ($1>0)?"":"-nokpi"}')" "yes"
+check "health check" "$(curl -gs $B/healthz | jq_ "d['ok']")" "True"
 
 # --- sign-out ---
 curl -gs -b $T/neeze-ckA -c $T/neeze-ckA -o /dev/null -X POST $B/auth/logout

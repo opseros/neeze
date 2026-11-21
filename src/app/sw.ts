@@ -2,6 +2,9 @@
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from 'serwist'
 import { CacheFirst, CacheableResponsePlugin, ExpirationPlugin, NetworkFirst, NetworkOnly, Serwist, StaleWhileRevalidate } from 'serwist'
 
+// Personal or staff pages and APIs: always from the network, never kept on the device.
+const PRIVATE = ['/admin', '/api/users', '/api/requests', '/api/notifications', '/api/content-reports', '/me', '/provider', '/notifications', '/insights', '/account', '/auth', '/signin', '/healthz', '/community/new']
+
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
     __SW_MANIFEST: (PrecacheEntry | string)[] | undefined
@@ -22,7 +25,7 @@ const DAY = 24 * 60 * 60
 const runtimeCaching: RuntimeCaching[] = [
   {
     matcher: ({ url, sameOrigin }) =>
-      sameOrigin && (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/users') || url.pathname.startsWith('/api/requests') || url.pathname.startsWith('/me')),
+      sameOrigin && PRIVATE.some((p) => url.pathname === p || url.pathname.startsWith(p + '/')),
     handler: new NetworkOnly(),
   },
   {

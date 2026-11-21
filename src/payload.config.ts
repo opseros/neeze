@@ -15,6 +15,7 @@ import { AuditLogs, Notifications, OtpChallenges } from './collections/System'
 import { Users } from './collections/Users'
 import { r2StoragePlugin } from './lib/storage'
 import { migrations } from './migrations'
+import { AnalyticsEvents } from './collections/Analytics'
 import { Comments, CommunityRestrictions, ContentReports, Posts } from './collections/Community'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -32,8 +33,9 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · Neeze Admin' },
+    components: { beforeDashboard: ['/components/admin/InsightsLink#InsightsLink'] },
   },
-  collections: [Providers, Requests, Reviews, Posts, Comments, ContentReports, CommunityRestrictions, Categories, Localities, News, Media, Users, Notifications, AuditLogs, OtpChallenges],
+  collections: [Providers, Requests, Reviews, Posts, Comments, ContentReports, CommunityRestrictions, Categories, Localities, News, Media, Users, Notifications, AuditLogs, OtpChallenges, AnalyticsEvents],
   // Photos from phones are resized in the browser first; this is the hard cap (Vercel bodies max out at 4.5 MB).
   upload: { limits: { fileSize: 4_000_000 } },
   globals: [SiteSettings],

@@ -12,6 +12,7 @@ import { unreadCount } from '@/lib/account'
 import { getCurrentUser, getSiteSettings } from '@/lib/server'
 import { SESSION_COOKIE } from '@/lib/session'
 import './styles.css'
+import { Tracker } from '@/components/tracker'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -79,6 +80,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
           <SiteFooter supportPhone={settings?.supportPhone} />
           <div className="h-16 md:hidden" aria-hidden />
           <MobileNav />
+          <Tracker />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -15,6 +15,7 @@ import { getContentLocale } from '@/lib/server'
 import { fmtDate } from '@/lib/format'
 import { usesBengaliNames } from '@/i18n/locales'
 import { ReportButton as ReportContent } from '@/components/community'
+import { TrackOnce } from '@/components/tracker'
 
 
 async function load(id: string) {
@@ -55,6 +56,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
+      <TrackOnce event={{ type: 'provider_view', provider: p.id }} />
       <PageTitle
         title={displayName}
         subtitle={[cats.map((c) => c.name).join(', '), base?.name].filter(Boolean).join(' · ')}
@@ -78,12 +80,12 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-              <a className="btn-primary" href={`tel:${p.phone}`}>
+              <a className="btn-primary" href={`tel:${p.phone}`} data-track="call" data-provider={p.id}>
                 <Phone className="size-4" aria-hidden /> {t('provider.call')}
                 <span className="hidden font-normal opacity-80 lg:inline">{p.phone}</span>
               </a>
               {wa && (
-                <a className="btn-whatsapp" href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">
+                <a className="btn-whatsapp" href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" data-track="whatsapp" data-provider={p.id}>
                   <MessageCircle className="size-4" aria-hidden /> {t('provider.whatsapp')}
                 </a>
               )}

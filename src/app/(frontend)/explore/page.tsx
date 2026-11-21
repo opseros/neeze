@@ -6,6 +6,7 @@ import { Container, PageTitle, ProviderCard } from '@/components/ui'
 import { VERTICALS } from '@/collections/Places'
 import { getCategoriesCached, searchProvidersCached } from '@/lib/cache'
 import { getContentLocale, getLocalities, getSelectedLocality } from '@/lib/server'
+import { TrackOnce } from '@/components/tracker'
 
 type SP = Promise<{ q?: string; category?: string; vertical?: string; locality?: string; page?: string }>
 
@@ -37,6 +38,7 @@ export default async function Explore({ searchParams }: { searchParams: SP }) {
 
   return (
     <>
+      {q && page === 1 && <TrackOnce event={{ type: 'search', q, results: results.totalDocs, locality: results.localityId ?? undefined, category: sp.category }} />}
       <PageTitle
         title={title}
         subtitle={vertical ? t(`verticalsDesc.${vertical}` as 'verticalsDesc.services') : undefined}

@@ -27,6 +27,9 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 | P1 listings: schools, gyms, hotels, bus operators with an enquiry flow; switch each category on in Admin → Categories | Done |
 | Community: posts with optional photo by topic and area, comments, "helpful", report, block; new members' first post reviewed (Admin setting); rules page; 5 posts / 30 comments / 20 reports a day | Done |
 | One report queue (Admin → Community → Reports & corrections) for posts, comments, news corrections and wrong listing details; reporter is told the outcome | Done |
+| Insights for staff (`/insights`, linked from the admin dashboard): no-result searches, listing views, call/WhatsApp taps, request conversion, provider answer rate within 24 h and slow providers, completion and reviews, moderation backlog | Done |
+| Anonymous usage events: no account, IP, cookie or device ID; Do Not Track respected; phone numbers masked in searches; kept 400 days | Done |
+| Server error alerts by email (`ALERT_EMAIL`), `/healthz` for uptime monitors, GitHub Actions CI, backup restore runbook (DEPLOY.md) | Done |
 | Assamese | Later: add it to `src/i18n/locales.ts`, `localization.locales` and `messages/as.json` |
 
 ## Run it locally
@@ -49,7 +52,7 @@ In dev, sign-in and mobile codes are printed in the server log and shown on scre
 
 ```bash
 npm test                                  # unit tests: roles, status transitions, search text, phones, session, OTP
-BASE=http://localhost:3000 scripts/smoke-test.sh   # 119 API checks against a running dev server seeded with demo data
+BASE=http://localhost:3000 scripts/smoke-test.sh   # 129 API checks against a running dev server seeded with demo data
 ```
 
 The smoke test covers community (review queue, privacy of authors, reports, auto-hide, blocks, restrictions, limits, photo ownership), all four languages, reviews (who may write, one per job, privacy, replies, reports), the provider flow (alerts, quote, accept, complete, notifications both ways), email sign-in, the mandatory mobile number, duplicate-account prevention, rate limits, privilege escalation, cross-user access (IDOR), idempotent submits, the request lifecycle, hidden unpublished listings and search.
@@ -76,12 +79,17 @@ src/
     Places.ts                localities (with aliases) and categories
     Content.ts               media, news, site settings (alert banner, emergency numbers, community posting mode)
     Community.ts             posts, comments, reports queue, moderator restrictions; helpful/report endpoints
+    Analytics.ts             anonymous usage events + /api/analytics-events/track
     System.ts                OTP challenges (hashed), audit logs
   lib/auth/                  sign-in rules (logic.ts, unit tested) and OAuth/email/phone helpers
   app/(frontend)/auth/       /auth/google, /auth/microsoft, /auth/email/*, /auth/phone/*, /auth/logout
   app/(frontend)/provider/   provider dashboard, request detail, listing form
   lib/notify.ts              in-app, email and WhatsApp alerts for requests
   lib/community.ts           community rules: who goes live, limits, report reasons (unit tested)
+  lib/insights.ts            event validation and KPI maths (unit tested); insights-server.ts runs the queries
+  lib/alerts.ts              error alert emails; wired in src/instrumentation.ts
+  app/(frontend)/insights/   staff KPI page
+  components/tracker.tsx     anonymous usage beacon
   app/(frontend)/community/  feed, post, write/edit, rules
   lib/                       search, text normalisation, session cookie, OTP, status machine, IndexedDB, R2 storage
   app/(frontend)/            the PWA screens
@@ -133,6 +141,7 @@ Content (category names, news, site settings) has a Manipuri field per script in
 ## Before launch: checklist
 
 - [ ] Native speaker review of `messages/bn.json` and the brand name in Bengali (নিজি)
+- [ ] Add what the site counts (DEPLOY.md → Monitoring) to the privacy policy
 - [ ] Moderation rota and response time for community reports; set the grievance email in Admin → Site settings (shown on /community/rules)
 - [ ] Legal review of the community rules (`messages/*.json` → `community.rulesList`)
 - [ ] Native Meitei speaker review of `messages/source/mni.json` (and both scripts on a phone), category names in Admin, and the emergency-number labels in both Manipuri locales

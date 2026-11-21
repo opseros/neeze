@@ -56,6 +56,7 @@ Remove the `*.vercel.app` line if you don't need uploads on preview deployments.
 | `EMAIL_FROM` | `neeze@opseros.com` |
 | `PHONE_VERIFICATION` | `off` for now (see "Mobile number check") |
 | `OTP_PROVIDER` | leave unset for now; `whatsapp` later, for the mobile check |
+| `ALERT_EMAIL` | where server error alerts go, e.g. `tech@opseros.com` (needs `RESEND_API_KEY`) |
 | `WHATSAPP_ALERT_TEMPLATE` | `neeze_new_request` (optional provider alerts, see below) |
 | `R2_BUCKET` | `neeze-media` |
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
@@ -176,7 +177,31 @@ The next deploy applies it automatically.
 - [ ] `/manifest.webmanifest` loads, and Chrome on Android offers "Add to Home screen"
 - [ ] Upload a photo in Admin → Media; its URL starts with `https://neeze-media.opseros.com/media/`
 - [ ] Turn on airplane mode after visiting a provider: Saved and Emergency pages still open
-- [ ] Neon dashboard → Backups: confirm point-in-time restore is on for your plan; do one test restore
+- [ ] Neon: point-in-time restore is on for your plan, and one test restore is written down (see below)
+- [ ] Uptime monitor on `https://neeze.opseros.com/healthz` (see below)
+- [ ] `ALERT_EMAIL` set; open `/insights` signed in as staff
+
+## Monitoring and alerts
+
+- **Server errors:** every unhandled error on a page, API route or form is emailed to `ALERT_EMAIL` (production only, through Resend). The same error is mailed at most once an hour per server. The email has the path, message and a *digest*; search Vercel → Logs for the digest to see the full request.
+- **Uptime:** `GET /healthz` returns `200 {"ok":true}` when the app and database answer, `503` otherwise, and nothing else. Point a free monitor at it (UptimeRobot or Better Stack, every 5 minutes, alert by email/WhatsApp).
+- **Launch KPIs:** `/insights` (staff only, also linked at the top of the admin dashboard): searches that found nothing, listing views, call/WhatsApp taps, requests, provider answer rate within 24 h, slow providers, completion and reviews, report and review-queue backlog.
+
+What the site counts, for the privacy policy: Explore searches (text with phone numbers and emails masked, and the result count), listing page views, call/WhatsApp taps and app installs. No account, IP address, cookie or device ID is stored with these, browsers that send Do Not Track or Global Privacy Control are not counted, and events are deleted after 400 days.
+
+## Backups and a restore test
+
+Neon keeps a history of the database (point-in-time restore; how far back depends on your plan: check Neon → Project → Settings → *History retention*, and raise it to at least 7 days). Do this once before launch and note the date in your runbook:
+
+1. Neon → **Branches → Create branch** → *From a point in time*: pick an hour ago. Name it `restore-test`.
+2. Copy that branch's connection string. On your PC, run the site against it (`$env:DATABASE_URL = "<restore-test url>"`, then `npm.cmd run dev`) and check that providers, requests and posts from before that time are there.
+3. Delete the `restore-test` branch.
+
+To actually recover after a mistake: create a branch at a time just before it, check it the same way, then in Neon set that branch as the project's **primary** (or copy the affected rows back), and redeploy Vercel. Media files live in R2; turn on R2 object versioning if you want undo for deleted photos too.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request: typecheck, unit tests, a check that the Manipuri files are generated, all migrations against an empty Postgres, and a production build. In GitHub → Settings → Branches, require the **CI** check before merging to `main`, so Vercel only deploys code that passed.
 
 ## Moving to a different domain later (e.g. neeze.in)
 

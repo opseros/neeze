@@ -90,11 +90,11 @@ export function SavedList() {
             </button>
           </div>
           <div className="mt-3 flex gap-2">
-            <a className="btn-primary flex-1" href={`tel:${p.phone}`}>
+            <a className="btn-primary flex-1" href={`tel:${p.phone}`} data-track="call" data-provider={p.id}>
               <Phone className="size-4" aria-hidden /> {t('provider.call')}
             </a>
             {p.whatsapp && (
-              <a className="btn-whatsapp flex-1" href={`https://wa.me/${p.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+              <a className="btn-whatsapp flex-1" href={`https://wa.me/${p.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" data-track="whatsapp" data-provider={p.id}>
                 <MessageCircle className="size-4" aria-hidden /> {t('provider.whatsapp')}
               </a>
             )}

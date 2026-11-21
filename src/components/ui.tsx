@@ -206,7 +206,7 @@ export async function ProviderCard({ p, locale }: { p: Provider; locale: string 
         </span>
       </Link>
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <a className="btn-secondary h-10 min-h-0 py-0 text-sm" href={`tel:${p.phone}`}>
+        <a className="btn-secondary h-10 min-h-0 py-0 text-sm" href={`tel:${p.phone}`} data-track="call" data-provider={p.id}>
           <Phone className="size-4" aria-hidden /> {t('call')}
         </a>
         <Link className="btn-primary h-10 min-h-0 py-0 text-sm" href={`/p/${p.id}`}>
