@@ -22,20 +22,21 @@ One Vercel project runs everything (screens, API, admin). Neon holds the data. R
 1. **R2 → Create bucket**, e.g. `neeze-media`.
 2. **Bucket → Settings → Custom domain**: connect `neeze-media.opseros.com`. This needs `opseros.com` to be a zone in the same Cloudflare account. If its DNS is elsewhere, either move the DNS to Cloudflare or use a different domain that is on Cloudflare. Don't use the `r2.dev` URL in production; Cloudflare rate-limits it.
 3. **R2 → Manage API tokens → Create token** with *Object Read & Write* on that bucket only. Note the Access Key ID, Secret Access Key and your Account ID.
-4. **Bucket → Settings → CORS policy**. Phones upload straight to R2 (Vercel limits request bodies to about 4.5 MB), so allow your site:
+4. **Bucket → Settings → CORS policy → Add CORS policy** (JSON tab). Photo uploads go straight from the browser to R2 (Vercel limits request bodies to about 4.5 MB), so R2 must allow your site. Without this, uploads in the admin fail with a *CORS error* and a 403 *preflight*:
 
 ```json
 [
   {
-    "AllowedOrigins": ["https://neeze.opseros.com", "https://*.vercel.app"],
+    "AllowedOrigins": ["https://neeze.opseros.com"],
     "AllowedMethods": ["PUT", "GET", "HEAD"],
     "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
     "MaxAgeSeconds": 3600
   }
 ]
 ```
 
-Remove the `*.vercel.app` line if you don't need uploads on preview deployments.
+The origin must match the address in the browser exactly: `https://`, no trailing slash. To upload from a Vercel preview, add that preview's full address (e.g. `https://neeze-git-main-you.vercel.app`) as another entry; wildcards may not be accepted. Changes take up to a minute.
 
 ## 3. Vercel
 

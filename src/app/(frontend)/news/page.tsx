@@ -38,7 +38,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
     <>
       <div className="border-b border-line bg-white">
         <Container className="pt-6 md:pt-10">
-          <h1 className="font-news text-3xl font-bold tracking-tight md:text-5xl">{section ? t(`sections.${section}` as 'sections.local') : t('title')}</h1>
+          <h1 className="font-news text-2xl font-bold tracking-tight md:text-[2rem]">{section ? t(`sections.${section}` as 'sections.local') : t('title')}</h1>
           <nav aria-label={t('allSections')} className="-mx-4 mt-4 flex gap-1 overflow-x-auto px-4 pb-3 md:mx-0 md:flex-wrap md:px-0">
             <Link href={href({ section: null })} className={chip(!section)} aria-current={!section ? 'page' : undefined}>
               {t('allSections')}
@@ -65,8 +65,8 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
                 )}
                 <div className={`grid content-center gap-3 ${img ? '' : 'md:col-span-2 md:max-w-3xl'}`}>
                   {!section && <SectionMark section={first.section} />}
-                  <h2 className="font-news text-[1.75rem] font-bold leading-[1.15] tracking-tight md:text-[2.5rem]">
-                    <Link href={`/news/${first.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+                  <h2 className="font-news text-2xl font-bold leading-[1.2] tracking-tight md:text-[1.75rem] lg:text-[2rem]">
+                    <Link href={`/news/${first.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-4">
                       {first.title}
                     </Link>
                   </h2>
@@ -86,7 +86,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
                         <img src={im.src} alt={im.alt} loading="lazy" className="aspect-[3/2] w-full rounded-xl object-cover" />
                       )}
                       {!section && <SectionMark section={n.section} />}
-                      <h3 className="font-news text-lg font-bold leading-snug md:text-xl">
+                      <h3 className="font-news text-base font-bold leading-snug md:text-lg">
                         <Link href={`/news/${n.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-4">
                           {n.title}
                         </Link>

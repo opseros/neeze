@@ -132,6 +132,12 @@ Stories written outside the admin (for example by an editor or an AI drafting st
 npm.cmd run import-news
 ```
 
+Or, without database access or secrets (works from any network that can open the site), sign in as an admin or editor:
+
+```powershell
+npm.cmd run import-news:web
+```
+
 Nothing goes live until an editor opens each draft in Admin → News, checks it against its sources, adds a photo and presses **Publish**. Stories that already exist (same slug) are skipped. Each story has a *Byline* (default "Neeze Editor").
 
 ## Moderating the community

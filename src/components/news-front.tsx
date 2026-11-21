@@ -85,7 +85,7 @@ export function SpotlightBand({ s }: { s: Spotlight }) {
       <Container className={`grid gap-4 ${s.imageUrl ? 'py-12 md:py-20' : 'py-6 md:py-8'} md:grid-cols-[1fr_auto] md:items-end`}>
         <div className="max-w-2xl">
           {s.tone === 'alert' && <Siren className="mb-2 size-6" aria-hidden />}
-          <h2 className={`font-news font-bold leading-tight tracking-tight ${s.imageUrl ? 'text-3xl md:text-5xl' : 'text-2xl md:text-3xl'}`}>{s.headline}</h2>
+          <h2 className={`font-news font-bold leading-tight tracking-tight ${s.imageUrl ? 'text-[1.75rem] md:text-4xl' : 'text-2xl md:text-[1.75rem]'}`}>{s.headline}</h2>
           {s.text && <p className="mt-2 max-w-xl text-base text-white/90 md:text-lg">{s.text}</p>}
         </div>
         {s.buttonLink && s.buttonLabel && (
@@ -110,8 +110,8 @@ async function Lead({ n, locale }: { n: News; locale: string }) {
       ) : null}
       <div className={`grid content-center gap-3 ${img ? '' : 'md:col-span-2 md:max-w-3xl'}`}>
         <SectionMark section={n.section} />
-        <h2 className={`font-news font-bold leading-[1.15] tracking-tight text-ink ${img ? 'text-[1.75rem] md:text-[1.875rem] lg:max-w-[22ch] lg:text-[2.5rem]' : 'text-3xl md:text-5xl'}`}>
-          <Link href={`/news/${n.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+        <h2 className={`font-news font-bold leading-[1.15] tracking-tight text-ink ${img ? 'text-2xl md:text-[1.75rem] lg:max-w-[26ch] lg:text-[2rem]' : 'text-2xl md:text-[1.875rem] lg:max-w-[30ch]'}`}>
+          <Link href={`/news/${n.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-4">
             {n.title}
           </Link>
         </h2>
@@ -133,7 +133,7 @@ async function Secondary({ n, locale }: { n: News; locale: string }) {
       )}
       <div className="grid min-w-0 flex-1 content-start gap-1 sm:gap-2">
         <SectionMark section={n.section} />
-        <h3 className="font-news text-base font-bold leading-snug text-ink sm:text-lg md:text-xl">
+        <h3 className="font-news text-base font-bold leading-snug text-ink sm:text-[17px] md:text-lg">
           <Link href={`/news/${n.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-4">
             {n.title}
           </Link>
@@ -151,7 +151,7 @@ export async function Brief({ n, locale }: { n: News; locale: string }) {
     <li className="group relative flex gap-4 border-t border-line py-4 first:border-t-0">
       <div className="grid min-w-0 flex-1 content-start gap-1">
         <SectionMark section={n.section} />
-        <h3 className="font-news text-base font-bold leading-snug text-ink md:text-[17px]">
+        <h3 className="font-news text-base font-bold leading-snug text-ink">
           <Link href={`/news/${n.slug}`} className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-4">
             {n.title}
           </Link>
@@ -271,7 +271,7 @@ export async function NewsFront() {
             </>
           ) : (
             <div className="rounded-2xl border border-dashed border-line bg-white p-8">
-              <h1 className="font-news text-2xl font-bold">{t('news.title')}</h1>
+              <h1 className="font-news text-xl font-bold">{t('news.title')}</h1>
               <p className="mt-2 text-muted">{t('news.noNews')}</p>
             </div>
           )}

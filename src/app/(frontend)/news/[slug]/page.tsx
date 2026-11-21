@@ -38,8 +38,8 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
               <span className="text-line" aria-hidden>/</span>
               <SectionMark section={n.section} />
             </nav>
-            <h1 className="mt-4 font-news text-[2rem] font-bold leading-[1.15] tracking-tight text-ink md:text-5xl">{n.title}</h1>
-            {n.summary && <p className="mt-4 text-lg leading-relaxed text-muted md:text-xl">{n.summary}</p>}
+            <h1 className="mt-4 font-news text-[1.625rem] font-bold leading-[1.2] tracking-tight text-ink md:text-[2.25rem]">{n.title}</h1>
+            {n.summary && <p className="mt-4 text-[17px] leading-relaxed text-muted md:text-lg">{n.summary}</p>}
             <p className="mt-4 text-sm text-muted">
               {n.byline && <span className="mr-3 font-semibold text-ink">{n.byline}</span>}
               {n.publishedAt && <time dateTime={n.publishedAt}>{fmt(n.publishedAt)}</time>}
