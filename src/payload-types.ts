@@ -484,7 +484,7 @@ export interface Post {
   author?: (number | null) | User;
   authorName?: string | null;
   /**
-   * The post as written. For Neeze Team posts, write it in Bengali and add other languages below.
+   * The post as written. For Neeze Team posts, write it in English and add other languages below.
    */
   body: string;
   /**

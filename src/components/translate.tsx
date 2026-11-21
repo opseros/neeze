@@ -4,12 +4,33 @@ import { Languages } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { type ReactNode, useState } from 'react'
 
+import { type TranslateMode, googleTranslateLink } from '@/lib/translate'
+
 /**
  * Shows the original content with a "Translate" link under it. When used, the content is replaced by
  * Google's translation (fetched once per paragraph site-wide and cached), with "Show original".
  * The server decides whether to offer it (`offer`): only when the text isn't already in the reader's language.
  */
-export function Translatable({ kind, id, offer, children, headingFirst = false, className = '' }: { kind: string; id: number; offer: boolean; children: ReactNode; headingFirst?: boolean; className?: string }) {
+export function Translatable({
+  kind,
+  id,
+  offer,
+  mode = 'api',
+  text = '',
+  children,
+  headingFirst = false,
+  className = '',
+}: {
+  kind: string
+  id: number
+  offer: boolean
+  /** 'link': no API key, so open Google's free translate.google.com in a new tab with `text`. */
+  mode?: TranslateMode
+  text?: string
+  children: ReactNode
+  headingFirst?: boolean
+  className?: string
+}) {
   const t = useTranslations('translate')
   const locale = useLocale()
   const [state, setState] = useState<'original' | 'busy' | 'translated' | 'error'>('original')
@@ -17,6 +38,20 @@ export function Translatable({ kind, id, offer, children, headingFirst = false, 
   const [error, setError] = useState('')
 
   if (!offer) return <>{children}</>
+
+  if (mode === 'link')
+    return (
+      <div className={className}>
+        {children}
+        <p className="mt-2 text-[13px]">
+          <a data-translate-button href={googleTranslateLink(text, locale)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-brand-blue hover:underline">
+            <Languages className="size-4" aria-hidden />
+            {t('button')}
+            <span className="font-normal text-muted">· {t('opensGoogle')}</span>
+          </a>
+        </p>
+      </div>
+    )
 
   const translate = async () => {
     if (paragraphs.length) return setState('translated')

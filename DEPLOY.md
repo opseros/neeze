@@ -185,7 +185,10 @@ The next deploy applies it automatically.
 
 ## Translate button (Google Cloud Translation)
 
-Readers see **Translate** under community posts, comments, news, business descriptions and reviews that aren't already in their language. Off until you add a key:
+Readers see **Translate** under community posts, comments, news, business descriptions and reviews that aren't already in their language.
+
+- **Without a key (free, no setup):** Translate opens the text in Google's free translate.google.com in a new tab.
+- **With a key:** the translation appears in place, with "Show original". The free tier covers it with the default daily limit:
 
 1. [console.cloud.google.com](https://console.cloud.google.com) → create a project (e.g. `neeze`) → **APIs & Services → Library** → enable **Cloud Translation API**. Google asks for a billing account; the first 500,000 characters each month are free.
 2. **APIs & Services → Credentials → Create credentials → API key**. Edit the key → **API restrictions → Restrict key → Cloud Translation API** only. (Leave application restrictions off; Vercel's servers have no fixed address.)

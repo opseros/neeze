@@ -30,7 +30,7 @@ This repo is **Sprint 1 + the core request flow** from the Neeze blueprint, buil
 | Landing page = news front page (top story, more news by section, services search, emergency numbers, community); services home at `/directory` | Done |
 | Admin → Site settings → Landing page: choose News, Services or Community; temporary change for set dates (another page and/or a spotlight banner) that switches back by itself | Done |
 | News sections (Local, Civic & utilities, Health, Education, Traffic & transport, Events, Business, Alerts), Pin as top story, section pages, related stories, headline serif (Noto Serif Bengali / Noto Serif) | Done |
-| Translate button (Google Cloud Translation) on posts, comments, news, business descriptions and reviews not in the reader's language; cached per paragraph, daily character limit, "Translated by Google" | Done (needs `GOOGLE_TRANSLATE_API_KEY`) |
+| Translate button (Google Cloud Translation) on posts, comments, news, business descriptions and reviews not in the reader's language; cached per paragraph, daily character limit, "Translated by Google" | Done (opens translate.google.com without a key; in place with `GOOGLE_TRANSLATE_API_KEY`) |
 | Insights for staff (`/insights`, linked from the admin dashboard): no-result searches, listing views, call/WhatsApp taps, request conversion, provider answer rate within 24 h and slow providers, completion and reviews, moderation backlog | Done |
 | Anonymous usage events: no account, IP, cookie or device ID; Do Not Track respected; phone numbers masked in searches; kept 400 days | Done |
 | Server error alerts by email (`ALERT_EMAIL`), `/healthz` for uptime monitors, GitHub Actions CI, backup restore runbook (DEPLOY.md) | Done |
@@ -144,7 +144,7 @@ Nothing goes live until an editor opens each draft in Admin → News, checks it 
 
 ## Starter community posts
 
-Posts by staff accounts appear as **Neeze Team** with an official badge (never as a made-up resident). Write team posts in Bengali and add other languages under *Translations* (Admin → Posts); readers see their own language, Bengali-script Manipuri readers fall back to Bengali and Meitei Mayek readers to English. Residents' posts stay as written. Moderators can **pin** a post to the top of the feed (Admin → Posts → *Pinned*). Six starter posts (welcome, waterlogging spots, recommendations, lost & found, the flyover plan, the offline tip) are in `data/community-posts-starter.json`:
+Posts by staff accounts appear as **Neeze Team** with an official badge (never as a made-up resident). Write team posts in English and add other languages under *Translations* (Admin → Posts); readers see their own language, Bengali-script Manipuri readers fall back to Bengali and Meitei Mayek readers to English. Residents' posts stay as written. Moderators can **pin** a post to the top of the feed (Admin → Posts → *Pinned*). Six starter posts (welcome, waterlogging spots, recommendations, lost & found, the flyover plan, the offline tip) are in `data/community-posts-starter.json`:
 
 ```powershell
 node scripts/import-posts-web.mjs     # asks for an admin/moderator email and password

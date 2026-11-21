@@ -564,6 +564,7 @@
     "by": "Translated by Google",
     "busy": "Translating…",
     "failed": "Couldn't translate right now. Try again later.",
-    "busyToday": "Translation is resting for today. Try again tomorrow."
+    "busyToday": "Translation is resting for today. Try again tomorrow.",
+    "opensGoogle": "opens Google Translate"
   }
 }

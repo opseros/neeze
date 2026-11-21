@@ -13,7 +13,7 @@ import { relativeTime } from '@/lib/format'
 import { getContentLocale, getPayloadClient } from '@/lib/server'
 import type { Post } from '@/payload-types'
 import { Translatable } from '@/components/translate'
-import { needsTranslation, translateEnabled } from '@/lib/translate'
+import { needsTranslation, translateMode } from '@/lib/translate'
 
 async function load(id: number): Promise<PostView | null> {
   if (!Number.isInteger(id) || id < 1) return null
@@ -42,7 +42,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const me = viewer.user?.id
   const signedIn = Boolean(viewer.user)
   const mine = Boolean(me && post.authorId === me)
-  const canTranslate = translateEnabled()
+  const tmode = translateMode()
 
   return (
     <Container className="max-w-3xl py-6 md:py-10">
@@ -60,7 +60,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         </div>
         {post.status === 'pending' && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">{t('pending')} · {t('pendingNote')}</p>}
         {post.status === 'hidden' && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">{t('hiddenNote')}</p>}
-        <Translatable kind="post" id={post.id} offer={canTranslate && needsTranslation(post.body, locale)} className="text-lg text-ink">
+        <Translatable kind="post" id={post.id} mode={tmode} text={post.body} offer={needsTranslation(post.body, locale)} className="text-lg text-ink">
           <p className="whitespace-pre-line text-lg leading-relaxed text-ink">{post.body}</p>
         </Translatable>
         {post.image && (
@@ -92,7 +92,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                     </p>
                     <ItemMenu kind="comment" id={c.id} mine={Boolean(me && c.authorId === me)} signedIn={signedIn} />
                   </div>
-                  <Translatable kind="comment" id={c.id} offer={canTranslate && needsTranslation(c.body, locale)} className="mt-1">
+                  <Translatable kind="comment" id={c.id} mode={tmode} text={c.body} offer={needsTranslation(c.body, locale)} className="mt-1">
                     <p className="whitespace-pre-line">{c.body}</p>
                   </Translatable>
                   {me && c.authorId !== me && (

@@ -37,3 +37,22 @@ describe('rich text to paragraphs', () => {
     expect(lexicalParagraphs(null)).toEqual([])
   })
 })
+
+import { googleTranslateLink } from '../src/lib/translate'
+
+describe('free Google Translate link', () => {
+  it('targets the reader language and carries the text', () => {
+    const u = new URL(googleTranslateLink('রবিবার জল বন্ধ', 'en'))
+    expect(u.hostname).toBe('translate.google.com')
+    expect(u.searchParams.get('tl')).toBe('en')
+    expect(u.searchParams.get('sl')).toBe('auto')
+    expect(u.searchParams.get('text')).toBe('রবিবার জল বন্ধ')
+    expect(new URL(googleTranslateLink('Hello', 'mni-Beng')).searchParams.get('tl')).toBe('bn')
+    expect(new URL(googleTranslateLink('Hello', 'mni-Mtei')).searchParams.get('tl')).toBe('mni-Mtei')
+  })
+  it('keeps long texts short enough for a browser address', () => {
+    const u = googleTranslateLink('শব্দ '.repeat(3000), 'en')
+    expect(u.length).toBeLessThan(5000)
+    expect(new URL(u).searchParams.get('text')!.endsWith('…')).toBe(true)
+  })
+})

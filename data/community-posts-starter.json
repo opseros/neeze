@@ -3,66 +3,66 @@
     "key": "welcome",
     "topic": "general",
     "pinned": true,
-    "body": "Neeze কমিউনিটিতে স্বাগত! শিলচরের প্রতিবেশীদের প্রশ্ন করুন, ভালো মিস্ত্রি বা ডাক্তারের সুপারিশ করুন, হারানো জিনিসের খবর দিন, এলাকার ঘোষণা শেয়ার করুন। পোস্ট করার আগে কমিউনিটির নিয়মগুলো একবার পড়ে নিন, আর অন্যের ফোন নম্বর বা ঠিকানা দেবেন না। কোনো পোস্ট নিয়ম ভাঙলে ‘রিপোর্ট’ চাপুন।",
+    "body": "Welcome to Neeze Community! Ask your Silchar neighbours, recommend good tradespeople and doctors, report lost and found, and share local announcements. Please read the community rules first, and never post other people's phone numbers or addresses. Tap Report on anything that breaks the rules.",
     "translations": [
       {
-        "locale": "en",
-        "body": "Welcome to Neeze Community! Ask your Silchar neighbours, recommend good tradespeople and doctors, report lost and found, and share local announcements. Please read the community rules first, and never post other people's phone numbers or addresses. Tap Report on anything that breaks the rules."
+        "locale": "bn",
+        "body": "Neeze কমিউনিটিতে স্বাগত! শিলচরের প্রতিবেশীদের প্রশ্ন করুন, ভালো মিস্ত্রি বা ডাক্তারের সুপারিশ করুন, হারানো জিনিসের খবর দিন, এলাকার ঘোষণা শেয়ার করুন। পোস্ট করার আগে কমিউনিটির নিয়মগুলো একবার পড়ে নিন, আর অন্যের ফোন নম্বর বা ঠিকানা দেবেন না। কোনো পোস্ট নিয়ম ভাঙলে ‘রিপোর্ট’ চাপুন।"
       }
     ]
   },
   {
     "key": "waterlogging",
     "topic": "question",
-    "body": "নতুন পুর নিগমের মেয়র জল জমার সমস্যাকে প্রথম কাজ বলেছেন। আপনার ওয়ার্ডে ভারী বৃষ্টির পর কোন রাস্তা বা গলিতে সবার আগে জল জমে? রাস্তার নাম আর কাছের কোনো চেনা জায়গা কমেন্টে লিখুন। ছবি থাকলে আরও ভালো। আমরা তালিকাটা একসঙ্গে করব।",
+    "body": "Silchar's new mayor has named waterlogging as the first problem to tackle. Which road or lane in your ward floods first after heavy rain? Comment with the street name and a nearby landmark (a photo helps). We'll put the list together.",
     "translations": [
       {
-        "locale": "en",
-        "body": "Silchar's new mayor has named waterlogging as the first problem to tackle. Which road or lane in your ward floods first after heavy rain? Comment with the street name and a nearby landmark (a photo helps). We'll put the list together."
+        "locale": "bn",
+        "body": "নতুন পুর নিগমের মেয়র জল জমার সমস্যাকে প্রথম কাজ বলেছেন। আপনার ওয়ার্ডে ভারী বৃষ্টির পর কোন রাস্তা বা গলিতে সবার আগে জল জমে? রাস্তার নাম আর কাছের কোনো চেনা জায়গা কমেন্টে লিখুন। ছবি থাকলে আরও ভালো। আমরা তালিকাটা একসঙ্গে করব।"
       }
     ]
   },
   {
     "key": "recommend",
     "topic": "recommendation",
-    "body": "সম্প্রতি কোনো ইলেকট্রিশিয়ান, প্লাম্বার, এসি মেকানিক বা দর্জির কাজে খুশি হয়েছেন? কমেন্টে নাম, এলাকা আর কী কাজ করিয়েছিলেন লিখুন, যাতে অন্যরাও ভরসা করতে পারেন। নিজের ব্যবসা হলে Neeze-এ বিনামূল্যে তালিকাভুক্ত হতে পারেন।",
+    "body": "Had good work done recently by an electrician, plumber, AC mechanic or tailor? Comment with their name, area and what they did, so neighbours know who to trust. Run a business yourself? You can list it on Neeze for free.",
     "translations": [
       {
-        "locale": "en",
-        "body": "Had good work done recently by an electrician, plumber, AC mechanic or tailor? Comment with their name, area and what they did, so neighbours know who to trust. Run a business yourself? You can list it on Neeze for free."
+        "locale": "bn",
+        "body": "সম্প্রতি কোনো ইলেকট্রিশিয়ান, প্লাম্বার, এসি মেকানিক বা দর্জির কাজে খুশি হয়েছেন? কমেন্টে নাম, এলাকা আর কী কাজ করিয়েছিলেন লিখুন, যাতে অন্যরাও ভরসা করতে পারেন। নিজের ব্যবসা হলে Neeze-এ বিনামূল্যে তালিকাভুক্ত হতে পারেন।"
       }
     ]
   },
   {
     "key": "lost-found",
     "topic": "lost-found",
-    "body": "কিছু হারিয়েছেন বা খুঁজে পেয়েছেন? ‘হারানো ও প্রাপ্তি’ বিষয়ে পোস্ট করুন: কী, কোথায়, কবে, আর চেনার মতো একটা চিহ্ন। নিজের ফোন নম্বর প্রকাশ্যে দেবেন না; কেউ কমেন্ট করলে তবেই যোগাযোগ করুন। কাগজপত্র বা দামি জিনিস পেলে থানায় জমা দেওয়াই ভালো।",
+    "body": "Lost or found something? Post under Lost & found with what, where, when and one detail that identifies it. Don't put your own phone number in the post; reply to comments instead. Found documents or valuables are best handed to the nearest police station.",
     "translations": [
       {
-        "locale": "en",
-        "body": "Lost or found something? Post under Lost & found with what, where, when and one detail that identifies it. Don't put your own phone number in the post; reply to comments instead. Found documents or valuables are best handed to the nearest police station."
+        "locale": "bn",
+        "body": "কিছু হারিয়েছেন বা খুঁজে পেয়েছেন? ‘হারানো ও প্রাপ্তি’ বিষয়ে পোস্ট করুন: কী, কোথায়, কবে, আর চেনার মতো একটা চিহ্ন। নিজের ফোন নম্বর প্রকাশ্যে দেবেন না; কেউ কমেন্ট করলে তবেই যোগাযোগ করুন। কাগজপত্র বা দামি জিনিস পেলে থানায় জমা দেওয়াই ভালো।"
       }
     ]
   },
   {
     "key": "flyover",
     "topic": "question",
-    "body": "এলিভেটেড করিডরের বদলে রাস্তা চওড়া করা আর দুটি ছোট ফ্লাইওভারের প্রস্তাব এখন মুখ্যমন্ত্রীর কাছে (খবর বিভাগে বিস্তারিত)। সেন্ট্রাল রোড, হসপিটাল রোড বা সদরঘাট দিয়ে রোজ যাতায়াত করেন? আপনার মতে যানজটে কী বদল আসবে? মতামত দিন, সৌজন্য বজায় রেখে।",
+    "body": "The plan to replace the elevated corridor with road widening and two short flyovers has gone to the Chief Minister (details in News). Do you use Central Road, Hospital Road or Sadarghat every day? How do you think it will change traffic? Share your view, and keep it civil.",
     "translations": [
       {
-        "locale": "en",
-        "body": "The plan to replace the elevated corridor with road widening and two short flyovers has gone to the Chief Minister (details in News). Do you use Central Road, Hospital Road or Sadarghat every day? How do you think it will change traffic? Share your view, and keep it civil."
+        "locale": "bn",
+        "body": "এলিভেটেড করিডরের বদলে রাস্তা চওড়া করা আর দুটি ছোট ফ্লাইওভারের প্রস্তাব এখন মুখ্যমন্ত্রীর কাছে (খবর বিভাগে বিস্তারিত)। সেন্ট্রাল রোড, হসপিটাল রোড বা সদরঘাট দিয়ে রোজ যাতায়াত করেন? আপনার মতে যানজটে কী বদল আসবে? মতামত দিন, সৌজন্য বজায় রেখে।"
       }
     ]
   },
   {
     "key": "offline-tip",
     "topic": "general",
-    "body": "ছোট্ট টিপস: Neeze ফোনের হোম স্ক্রিনে যোগ করুন (Chrome মেনু → ‘Add to Home screen’)। জরুরি নম্বর আর আপনার ‘সংরক্ষিত’ পরিষেবাদাতাদের তালিকা নেটওয়ার্ক না থাকলেও খোলে, তাই বন্যা বা লোডশেডিংয়ের সময় কাজে লাগবে।",
+    "body": "Quick tip: add Neeze to your phone's home screen (Chrome menu → Add to Home screen). Emergency numbers and your Saved providers open even without a network, which helps during floods and power cuts.",
     "translations": [
       {
-        "locale": "en",
-        "body": "Quick tip: add Neeze to your phone's home screen (Chrome menu → Add to Home screen). Emergency numbers and your Saved providers open even without a network, which helps during floods and power cuts."
+        "locale": "bn",
+        "body": "ছোট্ট টিপস: Neeze ফোনের হোম স্ক্রিনে যোগ করুন (Chrome মেনু → ‘Add to Home screen’)। জরুরি নম্বর আর আপনার ‘সংরক্ষিত’ পরিষেবাদাতাদের তালিকা নেটওয়ার্ক না থাকলেও খোলে, তাই বন্যা বা লোডশেডিংয়ের সময় কাজে লাগবে।"
       }
     ]
   }

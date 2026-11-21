@@ -43,9 +43,15 @@ const posts = JSON.parse(readFileSync(file, 'utf8'))
 let created = 0
 let updated = 0
 for (const p of posts) {
-  const firstLine = p.body.split('\n')[0].slice(0, 60)
-  const found = await api('GET', `/api/posts?where[body][like]=${encodeURIComponent(firstLine)}&where[official][equals]=true&limit=1&depth=0`, token)
-  const existing = found.docs?.[0]
+  // Find the post already on the site by its opening words in any of its languages (the main
+  // text may have changed language since it was first posted).
+  let existing = null
+  for (const text of [p.body, ...(p.translations ?? []).map((t) => t.body)]) {
+    const firstLine = text.split('\n')[0].slice(0, 60)
+    const found = await api('GET', `/api/posts?where[body][like]=${encodeURIComponent(firstLine)}&where[official][equals]=true&limit=1&depth=0`, token)
+    existing = found.docs?.[0] ?? null
+    if (existing) break
+  }
   if (existing) {
     const same = existing.body === p.body && JSON.stringify((existing.translations ?? []).map((t) => [t.locale, t.body])) === JSON.stringify((p.translations ?? []).map((t) => [t.locale, t.body]))
     if (same) {

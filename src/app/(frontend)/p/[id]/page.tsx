@@ -17,7 +17,7 @@ import { usesBengaliNames } from '@/i18n/locales'
 import { ReportButton as ReportContent } from '@/components/community'
 import { TrackOnce } from '@/components/tracker'
 import { Translatable } from '@/components/translate'
-import { needsTranslation, translateEnabled } from '@/lib/translate'
+import { needsTranslation, translateMode } from '@/lib/translate'
 
 
 async function load(id: string) {
@@ -119,7 +119,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
             <Section title={t('provider.about')}>
               {locale !== 'bn' && p.nameBn && <p className="mb-2 text-muted">{p.nameBn}</p>}
               {p.summary && (
-                <Translatable kind="provider" id={p.id} offer={translateEnabled() && needsTranslation(p.summary, locale)}>
+                <Translatable kind="provider" id={p.id} mode={translateMode()} text={p.summary} offer={needsTranslation(p.summary, locale)}>
                   <p className="leading-relaxed">{p.summary}</p>
                 </Translatable>
               )}
@@ -202,7 +202,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ id: s
                       <span className="text-xs text-muted">{dateFmt(rv.createdAt)}</span>
                     </div>
                     {rv.comment && (
-                      <Translatable kind="review" id={rv.id} offer={translateEnabled() && needsTranslation(rv.comment, locale)} className="mt-2 text-sm">
+                      <Translatable kind="review" id={rv.id} mode={translateMode()} text={rv.comment} offer={needsTranslation(rv.comment, locale)} className="mt-2 text-sm">
                         <p className="whitespace-pre-line text-sm leading-relaxed">{rv.comment}</p>
                       </Translatable>
                     )}

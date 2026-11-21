@@ -133,7 +133,7 @@ export const Posts: CollectionConfig = {
   fields: [
     authorField(),
     { name: 'authorName', type: 'text', admin: { readOnly: true } },
-    { name: 'body', type: 'textarea', required: true, maxLength: LIMITS.postBody, admin: { description: 'The post as written. For Neeze Team posts, write it in Bengali and add other languages below.' } },
+    { name: 'body', type: 'textarea', required: true, maxLength: LIMITS.postBody, admin: { description: 'The post as written. For Neeze Team posts, write it in English and add other languages below.' } },
     {
       name: 'translations',
       type: 'array',
